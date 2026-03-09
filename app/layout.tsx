@@ -29,8 +29,8 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   icons: {
-    icon: "/images/aflachat_logo.png",
-    apple: "/images/aflachat_logo.png",
+    icon: "/images/AflaChatLogo.png",
+    apple: "/images/AflaChatLogo.png",
   },
 };
 
