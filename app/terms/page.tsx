@@ -8,8 +8,9 @@ export default function Terms() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-20 animate-fade-up">
-      <h1 className="text-4xl font-extrabold mb-4">{t.terms.title}</h1>
-      <p className="text-zinc-500 mb-12">{t.terms.lastUpdated}</p>
+      <div className="w-12 h-1 bg-primary rounded-full mb-4" />
+      <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair,'Playfair Display',Georgia,serif)" }}>{t.terms.title}</h1>
+      <p className="text-zinc-500 mb-12 text-sm">{t.terms.lastUpdated}</p>
       
       <div className="prose prose-zinc dark:prose-invert max-w-none space-y-10">
         <section>

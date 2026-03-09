@@ -16,9 +16,10 @@ export default function Contact() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-20">
-      <div className="text-center mb-16 animate-fade-up">
-        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 transition-all">{t.contact.title}</h1>
-        <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+      <div className="mb-16 animate-fade-up">
+        <div className="w-12 h-1 bg-primary rounded-full mb-4" />
+        <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{ fontFamily: "var(--font-playfair,'Playfair Display',Georgia,serif)" }}>{t.contact.title}</h1>
+        <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl">
           Have questions or want to collaborate? Reach out to the AflaChat team.
         </p>
       </div>
@@ -27,7 +28,7 @@ export default function Contact() {
         {/* Contact Info */}
         <div className="space-y-12 animate-fade-up [animation-delay:100ms]">
           <div className="space-y-8">
-            <h2 className="text-3xl font-bold mb-8">Get in Touch</h2>
+            <h2 className="text-3xl font-bold mb-8" style={{ fontFamily: "var(--font-playfair,'Playfair Display',Georgia,serif)" }}>Get in Touch</h2>
             <div className="flex items-start gap-6 group">
               <div className="p-4 bg-accent dark:bg-primary/20 text-primary rounded-2xl group-hover:scale-110 transition-transform">
                 <Mail className="w-6 h-6" />
@@ -61,13 +62,13 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="p-8 bg-zinc-900 text-white rounded-[2rem] relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-primary rounded-full blur-[60px] opacity-20" />
-             <h3 className="text-xl font-bold mb-4">Language Support</h3>
-             <p className="text-zinc-400 mb-6">Our team is available to assist you in both English and Swahili.</p>
-             <div className="flex gap-2">
-               <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest">English</span>
-               <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest">Kiswahili</span>
+          <div className="p-8 bg-primary text-white rounded-2xl relative overflow-hidden border border-primary/50">
+             <div className="absolute top-0 right-0 w-40 h-40 bg-secondary/20 rounded-full blur-[60px]" />
+             <h3 className="text-xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair,'Playfair Display',Georgia,serif)" }}>Language Support</h3>
+             <p className="text-emerald-100 mb-6 text-sm">Our team is available to assist you in both English and Swahili.</p>
+             <div className="flex gap-3">
+               <span className="px-4 py-1.5 bg-white/15 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">🇬🇧 English</span>
+               <span className="px-4 py-1.5 bg-white/15 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">🇹🇿 Kiswahili</span>
              </div>
           </div>
         </div>
