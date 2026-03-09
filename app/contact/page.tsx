@@ -47,7 +47,7 @@ export default function Contact() {
               </div>
               <div>
                 <h4 className="font-bold text-lg mb-1">{t.contact.phone}</h4>
-                <p className="text-zinc-600 -zinc-400">+255 7XX XXX XXX</p>
+                <p className="text-zinc-600 -zinc-400"><a href="tel:+255759334659" className="text-zinc-600 -zinc-400 hover:text-primary transition-colors">+255 759 334 659</a></p>
               </div>
             </div>
 
