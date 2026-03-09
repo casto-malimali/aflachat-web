@@ -1,65 +1,150 @@
+"use client";
+
+import React from "react";
 import Image from "next/image";
+import { useLanguage } from "@/components/LanguageContext";
+import PlayStoreButton from "@/components/PlayStoreButton";
+import { Shield, Zap, BookOpen, MessageCircle, ArrowRight } from "lucide-react";
 
 export default function Home() {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: <MessageCircle className="w-6 h-6 text-emerald-600" />,
+      title: t.howItWorks.step1.title,
+      desc: t.howItWorks.step1.desc,
+    },
+    {
+      icon: <Zap className="w-6 h-6 text-emerald-600" />,
+      title: t.howItWorks.step2.title,
+      desc: t.howItWorks.step2.desc,
+    },
+    {
+      icon: <Shield className="w-6 h-6 text-emerald-600" />,
+      title: t.howItWorks.step3.title,
+      desc: t.howItWorks.step3.desc,
+    },
+  ];
+
+  const benefits = [
+    t.benefits.item1,
+    t.benefits.item2,
+    t.benefits.item3,
+    t.benefits.item4,
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col gap-24 pb-20">
+      {/* Hero Section */}
+      <section className="relative px-6 pt-20 pb-12 overflow-hidden">
+        <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-gradient-to-l from-emerald-50/50 to-transparent rounded-full blur-3xl" />
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
+          <div className="flex-1 text-center md:text-left animate-fade-up">
+            <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-wider uppercase text-emerald-700 bg-emerald-100 rounded-full">
+              {t.hero.welcome}
+            </span>
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-8 tracking-tight text-zinc-900 dark:text-zinc-50">
+              {t.hero.headline.split("Against").map((part, idx) => (
+                <span key={idx} className={idx === 1 ? "text-gradient block" : ""}>
+                   {idx === 1 ? `Against ${part}` : part}
+                </span>
+              ))}
+            </h1>
+            <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed max-w-2xl">
+              {t.hero.description}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-6 justify-center md:justify-start">
+              <PlayStoreButton />
+              <button className="flex items-center gap-2 font-bold text-zinc-600 hover:text-emerald-700 transition-colors group">
+                Learn how it works
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 relative animate-fade-up [animation-delay:200ms]">
+            <div className="w-[300px] h-[600px] bg-zinc-900 rounded-[3rem] border-8 border-zinc-800 shadow-2xl overflow-hidden relative mx-auto">
+                {/* Mock UI */}
+                <div className="p-6 h-full flex flex-col">
+                  <div className="w-full h-4 bg-zinc-800 rounded-full mb-8 flex justify-center items-center">
+                    <div className="w-12 h-2 bg-zinc-700 rounded-full" />
+                  </div>
+                  <div className="flex-1 space-y-4">
+                     <div className="bg-emerald-600/20 p-4 rounded-2xl rounded-tl-none mr-8">
+                        <p className="text-xs text-white/90">Hello! I'm AflaChat. How can I help you today with Aflatoxin safety?</p>
+                     </div>
+                     <div className="bg-zinc-800 p-4 rounded-2xl rounded-tr-none ml-8">
+                        <p className="text-xs text-zinc-400">What are the best drying methods for maize to prevent aflatoxin?</p>
+                     </div>
+                     <div className="bg-emerald-600 p-4 rounded-2xl rounded-tl-none mr-8">
+                        <p className="text-xs text-white">To prevent aflatoxin in maize, ensure rapid drying to below 13.5% moisture content...</p>
+                     </div>
+                  </div>
+                  <div className="mt-auto h-12 bg-zinc-800 rounded-xl flex items-center px-4">
+                    <div className="w-1/2 h-2 bg-zinc-700 rounded-full" />
+                  </div>
+                </div>
+            </div>
+            {/* Floating elements */}
+            <div className="absolute top-1/4 -left-12 p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-800 animate-bounce [animation-duration:3s]">
+               <Shield className="text-emerald-600" />
+            </div>
+            <div className="absolute bottom-1/4 -right-8 p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-800 animate-bounce [animation-duration:4s]">
+               <BookOpen className="text-emerald-600" />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* How it Works Section */}
+      <section className="max-w-7xl mx-auto px-6 w-full">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-4">{t.howItWorks.title}</h2>
+          <div className="h-1.5 w-24 bg-emerald-600 mx-auto rounded-full" />
         </div>
-      </main>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {features.map((f, i) => (
+            <div key={i} className="group p-8 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 hover:border-emerald-200 transition-all hover:shadow-2xl hover:shadow-emerald-500/10">
+              <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-6 border border-emerald-100 dark:border-emerald-800 group-hover:scale-110 transition-transform">
+                {f.icon}
+              </div>
+              <h3 className="text-xl font-bold mb-4">{f.title}</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                {f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="bg-emerald-900 text-white py-24 px-6 overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-400 to-transparent" />
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16 relative z-10">
+          <div className="flex-1">
+            <h2 className="text-4xl font-bold mb-12">{t.benefits.title}</h2>
+            <div className="space-y-6">
+              {benefits.map((b, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                  <div className="mt-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-lg font-medium">{b}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 text-center bg-white/10 p-12 rounded-[3rem] border border-white/20 backdrop-blur-md">
+            <h3 className="text-3xl font-extrabold mb-6">Join thousands of safer farmers today.</h3>
+            <p className="mb-10 text-emerald-100 text-lg">
+              Start chatting with AflaChat and protect your harvest.
+            </p>
+            <PlayStoreButton />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
