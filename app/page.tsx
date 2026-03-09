@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
 import { useLanguage } from "@/components/LanguageContext";
 import PlayStoreButton from "@/components/PlayStoreButton";
 import { Shield, Zap, BookOpen, MessageCircle, ArrowRight } from "lucide-react";
@@ -11,17 +9,17 @@ export default function Home() {
 
   const features = [
     {
-      icon: <MessageCircle className="w-6 h-6 text-emerald-600" />,
+      icon: <MessageCircle className="w-6 h-6 text-secondary" />,
       title: t.howItWorks.step1.title,
       desc: t.howItWorks.step1.desc,
     },
     {
-      icon: <Zap className="w-6 h-6 text-emerald-600" />,
+      icon: <Zap className="w-6 h-6 text-secondary" />,
       title: t.howItWorks.step2.title,
       desc: t.howItWorks.step2.desc,
     },
     {
-      icon: <Shield className="w-6 h-6 text-emerald-600" />,
+      icon: <Shield className="w-6 h-6 text-secondary" />,
       title: t.howItWorks.step3.title,
       desc: t.howItWorks.step3.desc,
     },
@@ -38,10 +36,10 @@ export default function Home() {
     <div className="flex flex-col gap-24 pb-20">
       {/* Hero Section */}
       <section className="relative px-6 pt-20 pb-12 overflow-hidden">
-        <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-gradient-to-l from-emerald-50/50 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-gradient-to-l from-secondary/10 to-transparent rounded-full blur-3xl" />
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
           <div className="flex-1 text-center md:text-left animate-fade-up">
-            <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-wider uppercase text-emerald-700 bg-emerald-100 rounded-full">
+            <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-wider uppercase text-primary bg-accent rounded-full border border-primary/10">
               {t.hero.welcome}
             </span>
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-8 tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -56,7 +54,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-6 justify-center md:justify-start">
               <PlayStoreButton />
-              <button className="flex items-center gap-2 font-bold text-zinc-600 hover:text-emerald-700 transition-colors group">
+              <button className="flex items-center gap-2 font-bold text-zinc-600 hover:text-primary transition-colors group">
                 Learn how it works
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
@@ -71,7 +69,7 @@ export default function Home() {
                   </div>
                   <div className="flex-1 space-y-4">
                      <div className="bg-emerald-600/20 p-4 rounded-2xl rounded-tl-none mr-8">
-                        <p className="text-xs text-white/90">Hello! I'm AflaChat. How can I help you today with Aflatoxin safety?</p>
+                        <p className="text-xs text-white/90">Hello! I&apos;m AflaChat. How can I help you today with Aflatoxin safety?</p>
                      </div>
                      <div className="bg-zinc-800 p-4 rounded-2xl rounded-tr-none ml-8">
                         <p className="text-xs text-zinc-400">What are the best drying methods for maize to prevent aflatoxin?</p>
@@ -100,7 +98,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 w-full">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">{t.howItWorks.title}</h2>
-          <div className="h-1.5 w-24 bg-emerald-600 mx-auto rounded-full" />
+          <div className="h-1.5 w-24 bg-primary mx-auto rounded-full" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {features.map((f, i) => (
@@ -118,8 +116,8 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="bg-emerald-900 text-white py-24 px-6 overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-400 to-transparent" />
+      <section className="bg-primary text-white py-24 px-6 overflow-hidden relative">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary to-transparent" />
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16 relative z-10">
           <div className="flex-1">
             <h2 className="text-4xl font-bold mb-12">{t.benefits.title}</h2>

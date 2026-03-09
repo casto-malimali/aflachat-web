@@ -25,7 +25,6 @@ function ThemeToggleButton() {
 
 export default function Footer() {
   const { t } = useLanguage();
-  const { theme } = useTheme();
   
   const currentYear = new Date().getFullYear();
 
@@ -36,7 +35,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <img
-                src="/images/AflaChatLogo.png"
+                src="/images/aflachat_logo.png"
                 alt="AflaChat logo"
                 className="w-8 h-8 object-contain"
               />
@@ -46,16 +45,16 @@ export default function Footer() {
               {t.hero.description}
             </p>
             <div className="flex gap-4 mt-6">
-              <a href="#" className="p-2 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition-colors">
+              <a href="#" className="p-2 bg-accent text-primary rounded-full hover:bg-secondary/10 transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="p-2 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition-colors">
+              <a href="#" className="p-2 bg-accent text-primary rounded-full hover:bg-secondary/10 transition-colors">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="p-2 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition-colors">
+              <a href="#" className="p-2 bg-accent text-primary rounded-full hover:bg-secondary/10 transition-colors">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="mailto:pamsekela@gmail.com" className="p-2 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition-colors">
+              <a href="mailto:pamsekela@gmail.com" className="p-2 bg-accent text-primary rounded-full hover:bg-secondary/10 transition-colors">
                 <Mail className="w-5 h-5" />
               </a>
             </div>
@@ -66,9 +65,9 @@ export default function Footer() {
               Quick Links
             </h4>
             <div className="flex flex-col gap-4 text-zinc-600 dark:text-zinc-400">
-              <Link href="/" className="hover:text-emerald-600 transition-colors">{t.nav.home}</Link>
-              <Link href="/services" className="hover:text-emerald-600 transition-colors">{t.nav.services}</Link>
-              <Link href="/contact" className="hover:text-emerald-600 transition-colors">{t.nav.contact}</Link>
+              <Link href="/" className="hover:text-primary transition-colors">{t.nav.home}</Link>
+              <Link href="/services" className="hover:text-primary transition-colors">{t.nav.services}</Link>
+              <Link href="/contact" className="hover:text-primary transition-colors">{t.nav.contact}</Link>
             </div>
           </div>
           

@@ -62,7 +62,7 @@ export default function Terms() {
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
             For questions regarding these terms, please contact us at:
           </p>
-          <a href="mailto:pamsekela@gmail.com" className="text-emerald-600 font-bold hover:underline">pamsekela@gmail.com</a>
+          <a href="mailto:pamsekela@gmail.com" className="text-primary font-bold hover:underline">pamsekela@gmail.com</a>
         </section>
       </div>
     </div>

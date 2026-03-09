@@ -1,16 +1,13 @@
 "use client";
 
-import React from "react";
-import { useLanguage } from "@/components/LanguageContext";
 import PlayStoreButton from "@/components/PlayStoreButton";
 import { Smartphone, Download, CheckCircle } from "lucide-react";
 
 export default function DownloadPage() {
-  const { t } = useLanguage();
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-20">
-      <div className="bg-emerald-600 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden shadow-2xl">
+      <div className="bg-primary rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px]" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-16">
@@ -22,7 +19,7 @@ export default function DownloadPage() {
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
               Get AflaChat on your Android device
             </h1>
-            <p className="text-xl text-emerald-50 max-w-lg leading-relaxed">
+            <p className="text-xl text-accent max-w-lg leading-relaxed">
               Start protecting your family and your harvest today. The official AflaChat app is free to download and easy to use.
             </p>
             
@@ -32,12 +29,12 @@ export default function DownloadPage() {
 
             <div className="space-y-4 pt-8 border-t border-white/10">
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-300" />
-                <span className="font-medium text-emerald-50">Requires Android 8.0 or higher</span>
+                <CheckCircle className="w-5 h-5 text-secondary" />
+                <span className="font-medium text-accent">Requires Android 8.0 or higher</span>
               </div>
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-300" />
-                <span className="font-medium text-emerald-50">Size: ~25MB</span>
+                <CheckCircle className="w-5 h-5 text-secondary" />
+                <span className="font-medium text-accent">Size: ~25MB</span>
               </div>
             </div>
           </div>
@@ -59,11 +56,11 @@ export default function DownloadPage() {
         </div>
         <div className="space-y-4">
           <h3 className="text-2xl font-bold">Step 2</h3>
-          <p className="text-zinc-600 dark:text-zinc-400">Search for "AflaChat" in the search bar.</p>
+          <p className="text-zinc-600 dark:text-zinc-400">Search for &quot;AflaChat&quot; in the search bar.</p>
         </div>
         <div className="space-y-4">
           <h3 className="text-2xl font-bold">Step 3</h3>
-          <p className="text-zinc-600 dark:text-zinc-400">Tap "Install" and start chatting with our AI.</p>
+          <p className="text-zinc-600 dark:text-zinc-400">Tap &quot;Install&quot; and start chatting with our AI.</p>
         </div>
       </div>
     </div>

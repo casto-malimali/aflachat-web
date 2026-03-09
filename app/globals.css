@@ -1,21 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #059669; /* emerald-600 */
+  --color-primary: #064e3b; /* forest green */
+  --color-secondary: #10b981; /* emerald */
   --color-primary-foreground: #ffffff;
-  --color-accent: #f0fdf4; /* emerald-50 */
-  --color-muted: #f3f4f6; /* gray-100 */
-  --color-muted-foreground: #6b7280; /* gray-500 */
+  --color-accent: #ecfdf5; /* light emerald */
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: #6b7280;
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #111827;
+  --foreground: #022c22;
 }
 
-.dark :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+.dark {
+  --background: #020617;
+  --foreground: #f0fdf4;
 }
 
 body {
@@ -35,7 +36,7 @@ body {
 }
 
 .text-gradient {
-  @apply bg-gradient-to-r from-emerald-700 to-emerald-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
 }
 
 /* Animations */

@@ -37,11 +37,11 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-2 group">
           {/* use official logo instead of placeholder letter */}
           <img
-            src="/images/AflaChatLogo.png"
+            src="/images/aflachat_logo.png"
             alt="AflaChat logo"
             className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
           />
-          <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-emerald-700 to-emerald-500 bg-clip-text text-transparent">
+          <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             AflaChat
           </span>
         </Link>
@@ -52,7 +52,7 @@ export default function Navbar() {
             <Link 
               key={link.href} 
               href={link.href}
-              className="font-medium hover:text-emerald-600 transition-colors"
+              className="font-medium hover:text-primary transition-colors"
             >
               {link.name}
             </Link>
@@ -61,26 +61,26 @@ export default function Navbar() {
           <div className="relative">
             <button 
               onClick={() => setIsLangOpen(!isLangOpen)}
-              className="flex items-center gap-1.5 font-medium px-3 py-1.5 rounded-full hover:bg-emerald-50 transition-colors"
+              className="flex items-center gap-1.5 font-medium px-3 py-1.5 rounded-full hover:bg-accent transition-colors"
             >
               <Globe className="w-4 h-4" />
-              {language === "en" ? "English" : "Swahili"}
+              {language === "en" ? "🇬🇧 English" : "🇹🇿 Swahili"}
               <ChevronDown className="w-4 h-4" />
             </button>
             
             {isLangOpen && (
-              <div className="absolute top-full right-0 mt-2 w-32 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-100 p-1 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute top-full right-0 mt-2 w-36 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-100 p-1 animate-in fade-in slide-in-from-top-2">
                 <button 
                   onClick={() => { setLanguage("en"); setIsLangOpen(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm ${language === "en" ? "bg-emerald-50 text-emerald-700 font-semibold" : "hover:bg-zinc-50"}`}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${language === "en" ? "bg-accent text-primary font-semibold" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}
                 >
-                  English
+                  <span className="text-base">🇬🇧</span> English
                 </button>
                 <button 
                   onClick={() => { setLanguage("sw"); setIsLangOpen(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm ${language === "sw" ? "bg-emerald-50 text-emerald-700 font-semibold" : "hover:bg-zinc-50"}`}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${language === "sw" ? "bg-accent text-primary font-semibold" : "hover:bg-zinc-50 dark:hover:bg-zinc-800"}`}
                 >
-                  Swahili
+                  <span className="text-base">🇹🇿</span> Swahili
                 </button>
               </div>
             )}
@@ -88,7 +88,7 @@ export default function Navbar() {
 
           <Link 
             href="/download"
-            className="px-5 py-2.5 bg-emerald-600 text-white font-semibold rounded-full hover:bg-emerald-700 transition-all shadow-emerald-200 shadow-md hover:shadow-lg"
+            className="px-5 py-2.5 bg-primary text-white font-semibold rounded-full hover:bg-secondary transition-all shadow-primary/20 shadow-md hover:shadow-lg"
           >
             {t.nav.download}
           </Link>
@@ -117,24 +117,24 @@ export default function Navbar() {
             </Link>
           ))}
           
-          <div className="flex gap-4 p-1 bg-zinc-100 rounded-xl">
+          <div className="flex gap-4 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl">
             <button 
               onClick={() => setLanguage("en")}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold ${language === "en" ? "bg-white shadow text-emerald-700" : "text-zinc-500"}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 ${language === "en" ? "bg-white dark:bg-zinc-800 shadow text-primary" : "text-zinc-500"}`}
             >
-              EN
+              🇬🇧 EN
             </button>
             <button 
               onClick={() => setLanguage("sw")}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold ${language === "sw" ? "bg-white shadow text-emerald-700" : "text-zinc-500"}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 ${language === "sw" ? "bg-white dark:bg-zinc-800 shadow text-primary" : "text-zinc-500"}`}
             >
-              SW
+              🇹🇿 SW
             </button>
           </div>
 
           <Link 
             href="/download"
-            className="w-full py-3 bg-emerald-600 text-white text-center font-bold rounded-xl"
+            className="w-full py-3 bg-primary text-white text-center font-bold rounded-xl"
             onClick={() => setIsMenuOpen(false)}
           >
             {t.nav.download}
