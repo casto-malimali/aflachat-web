@@ -43,7 +43,7 @@ export const translations = {
     benefits: {
       title: "Benefits of Using AflaChat",
       item1: "Expert guidance at your fingertips 24/7.",
-      item2: "Early detection and prevention strategies.",
+      item2: "Prevention strategies.",
       item3: "Improved food safety for your family and community.",
       item4: "Localized knowledge for farmers and traders.",
       cta: "Join thousands of safer farmers today.",
@@ -167,7 +167,7 @@ export const translations = {
     benefits: {
       title: "Faida za Kutumia AflaChat",
       item1: "Mwongozo wa kitaalamu saa 24/7 kiganjani mwako.",
-      item2: "Mbinu za utambuzi wa mapema na kuzuia.",
+      item2: "Mbinu za kuzuia.",
       item3: "Usalama bora wa chakula kwa familia na jamii yako.",
       item4: "Maarifa ya ndani kwa wakulima na wafanyabiashara.",
       cta: "Jiunge na maelfu ya wakulima salama leo.",
