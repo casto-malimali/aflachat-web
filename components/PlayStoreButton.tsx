@@ -18,7 +18,7 @@ export default function PlayStoreButton() {
 
   return (
     <a
-      href="#"
+      href="https://play.google.com/store/apps/details?id=com.app01.aflachat&pcampaignid=web_share"
       className="inline-block hover:-translate-y-0.5 transition-transform active:scale-95"
       aria-label={altText}
     >
