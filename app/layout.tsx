@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/components/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ChatWidget from "@/components/ChatWidget";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -84,6 +85,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              <ChatWidget />
             </div>
           </ThemeProvider>
         </LanguageProvider>
