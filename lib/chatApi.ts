@@ -33,7 +33,8 @@ export async function startSession(language: Lang): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/session/start`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify({ language }),
+    // Tag the source so the admin dashboard can split "website vs app" traffic.
+    body: JSON.stringify({ language, platform: "web" }),
   });
   if (!res.ok) throw new Error(`session/start failed: ${res.status}`);
   const json = await res.json();

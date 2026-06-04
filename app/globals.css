@@ -16,6 +16,12 @@
 :root {
   --background: #ffffff;
   --foreground: #18181b; /* zinc-900 */
+
+  /* Font stacks (previously injected by next/font/google). These resolve to
+     locally-installed Poppins/Inter when available, otherwise the platform UI
+     font — so the app renders without any build-time network font download. */
+  --font-poppins: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --font-inter: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
 body {

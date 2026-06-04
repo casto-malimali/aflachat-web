@@ -1,23 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import ChatWidget from "@/components/ChatWidget";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
+// Note: fonts are loaded via CSS variables defined in globals.css (Poppins/Inter
+// with system fallbacks) rather than next/font/google. next/font downloads the
+// font files from Google at build time, which fails in offline/restricted
+// environments and takes the whole app down; the CSS-variable approach degrades
+// gracefully to locally-installed or system fonts.
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aflachat.com"), // Placeholder URL, can be changed later
@@ -74,20 +64,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${poppins.variable} ${inter.variable} antialiased`}
+        className="antialiased"
         style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)" }}
       >
         <LanguageProvider>
-          <ThemeProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow pt-20">
-                {children}
-              </main>
-              <Footer />
-              <ChatWidget />
-            </div>
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </LanguageProvider>
       </body>
     </html>
