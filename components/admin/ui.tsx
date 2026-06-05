@@ -90,10 +90,10 @@ export function Panel({
 const SOURCE_STYLES: Record<string, string> = {
   web: "bg-sky-50 text-sky-700 ring-sky-200",
   android: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  ios: "bg-violet-50 text-violet-700 ring-violet-200",
+  ios: "bg-teal-50 text-teal-700 ring-teal-200",
   other: "bg-gray-100 text-gray-600 ring-gray-200",
-  en: "bg-amber-50 text-amber-700 ring-amber-200",
-  sw: "bg-rose-50 text-rose-700 ring-rose-200",
+  en: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  sw: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
 export function Tag({ value }: { value: string }) {

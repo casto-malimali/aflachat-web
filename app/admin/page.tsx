@@ -74,7 +74,7 @@ export default function OverviewPage() {
             label="Avg / session"
             value={o.avgMessagesPerSession}
             sub={fmtDuration(o.avgSessionMs)}
-            accent="#8b5cf6"
+            accent="#0d9488"
           />
           <StatCard
             label="Avg latency"
@@ -82,7 +82,7 @@ export default function OverviewPage() {
             sub={`${o.activeDays} active days`}
             accent="#f59e0b"
           />
-          <StatCard label="Community feedback" value={fmtNum(o.communityFeedback)} accent="#ec4899" />
+          <StatCard label="Community feedback" value={fmtNum(o.communityFeedback)} accent="#0f766e" />
           <StatCard label="Unanswered" value={fmtNum(o.unanswered)} accent="#ef4444" />
           <StatCard label="Offline attempts" value={fmtNum(o.offlineAttempts)} accent="#64748b" />
           <StatCard
@@ -148,7 +148,7 @@ export default function OverviewPage() {
               segments={[
                 { label: "Website", value: p.web, color: "#0ea5e9" },
                 { label: "Android", value: p.android, color: "#10b981" },
-                { label: "iOS", value: p.ios, color: "#8b5cf6" },
+                { label: "iOS", value: p.ios, color: "#0d9488" },
                 { label: "Other", value: p.other, color: "#cbd5e1" },
               ]}
             />
@@ -164,7 +164,7 @@ export default function OverviewPage() {
             <BarList
               items={[
                 { label: "English", value: languages.data?.totals.en ?? 0, color: "#f59e0b" },
-                { label: "Swahili", value: languages.data?.totals.sw ?? 0, color: "#f43f5e" },
+                { label: "Swahili", value: languages.data?.totals.sw ?? 0, color: "#d97706" },
               ]}
             />
           )}

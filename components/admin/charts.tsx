@@ -42,7 +42,14 @@ export function LineChart({
   if (!data.length) return <Empty height={H} />;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" preserveAspectRatio="none">
+    <figure className="m-0">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      role="img"
+      aria-label={`Trend chart of ${series.map((s) => s.label).join(" and ")} over time. Data available in the table below.`}
+      preserveAspectRatio="none"
+    >
       {/* horizontal gridlines */}
       {[0, 0.25, 0.5, 0.75, 1].map((t) => (
         <line
@@ -87,6 +94,29 @@ export function LineChart({
         ) : null,
       )}
     </svg>
+    {/* Screen-reader / no-JS accessible equivalent of the chart. */}
+    <table className="sr-only">
+      <caption>Chart data</caption>
+      <thead>
+        <tr>
+          <th scope="col">Label</th>
+          {series.map((s) => (
+            <th key={s.key} scope="col">{s.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((d, i) => (
+          <tr key={i}>
+            <th scope="row">{d.label}</th>
+            {series.map((s) => (
+              <td key={s.key}>{numAt(d, s.key)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    </figure>
   );
 }
 
@@ -135,7 +165,7 @@ export function Donut({
 
   return (
     <div className="flex items-center gap-5">
-      <svg viewBox="0 0 140 140" width={size} height={size} className="shrink-0">
+      <svg viewBox="0 0 140 140" width={size} height={size} className="shrink-0" aria-hidden="true">
         <g transform="rotate(-90 70 70)">
           <circle cx={70} cy={70} r={r} fill="none" stroke="#f1f1ee" strokeWidth={18} />
           {total > 0 &&
@@ -168,10 +198,10 @@ export function Donut({
       <ul className="flex flex-col gap-1.5 text-sm">
         {segments.map((s) => (
           <li key={s.label} className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: s.color }} />
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: s.color }} aria-hidden />
             <span className="text-gray-600">{s.label}</span>
             <span className="ml-auto tabular-nums text-gray-400">
-              {total > 0 ? Math.round((s.value / total) * 100) : 0}%
+              {s.value} ({total > 0 ? Math.round((s.value / total) * 100) : 0}%)
             </span>
           </li>
         ))}
