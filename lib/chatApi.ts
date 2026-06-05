@@ -76,6 +76,32 @@ export async function reportOfflineAttempt(region?: string): Promise<void> {
 }
 
 /**
+ * Send 👍/👎 on an AI answer. The admin dashboard already charts
+ * `quality.feedback.up/down` — this is the producer the web client was missing.
+ * Best-effort; never throws.
+ */
+export async function sendFeedback(messageId: string, rating: "up" | "down"): Promise<void> {
+  await fetch(`${BASE_URL}/api/feedback`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ messageId, rating }),
+  }).catch(() => {
+    /* best-effort; ignore */
+  });
+}
+
+/** Report that a question had no good answer (feeds the admin "Unanswered" KPI). */
+export async function reportUnanswered(sessionId: string | null, message: string): Promise<void> {
+  await fetch(`${BASE_URL}/api/events/unanswered`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ sessionId, message }),
+  }).catch(() => {
+    /* best-effort; ignore */
+  });
+}
+
+/**
  * Offline answer: keyword-overlap match against the cached FAQ pack — a small,
  * browser-side mirror of the backend's `searchContext`. Returns the best
  * matching answer for the active language, or null if nothing is relevant.
