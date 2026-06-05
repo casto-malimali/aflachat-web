@@ -29,7 +29,7 @@ export default function DownloadPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                 {dl.badge}
               </div>
-              <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>
+              <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
                 {dl.title}
               </h1>
               <p className="text-xl text-emerald-100 leading-relaxed mb-10 max-w-lg">{dl.description}</p>
@@ -76,7 +76,7 @@ export default function DownloadPage() {
                   </div>
                 </div>
                 <div className="absolute -right-8 top-1/4 bg-white text-zinc-900 px-4 py-3 rounded-2xl shadow-2xl text-center">
-                  <p className="text-2xl font-black text-primary" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>{t.hero.statFree}</p>
+                  <p className="font-heading text-2xl font-black text-primary">{t.hero.statFree}</p>
                   <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{dl.freeLabel}</p>
                 </div>
               </div>
@@ -90,17 +90,17 @@ export default function DownloadPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <div className="w-12 h-1 bg-primary rounded-full mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-bold text-zinc-900" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>
+            <h2 className="text-3xl md:text-4xl font-bold text-zinc-900">
               {dl.howToTitle}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((s, i) => (
               <div key={i} className="relative p-8 bg-zinc-50 rounded-2xl border border-zinc-100 text-center">
-                <span className="block text-6xl font-black text-zinc-100 mb-4" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>
+                <span className="block font-heading text-6xl font-black text-zinc-100 mb-4">
                   {s.step}
                 </span>
-                <h3 className="text-xl font-bold mb-3 text-zinc-900" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>{s.title}</h3>
+                <h3 className="text-xl font-bold mb-3 text-zinc-900">{s.title}</h3>
                 <p className="text-zinc-600 text-sm">{s.desc}</p>
               </div>
             ))}

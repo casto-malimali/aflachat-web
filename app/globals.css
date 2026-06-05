@@ -1,27 +1,92 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Design tokens (Tailwind v4 — configured here, not in tailwind.config.js).
+   See docs/redesign/02-DESIGN-SYSTEM.md for the full spec, usage & contrast.
+   ──────────────────────────────────────────────────────────────────────── */
 @theme {
-  --color-primary: #064e3b;       /* deep forest green */
-  --color-secondary: #10b981;     /* emerald */
+  /* Brand */
+  --color-primary: #064e3b;            /* deep forest green */
+  --color-primary-hover: #053e2f;
   --color-primary-foreground: #ffffff;
-  --color-accent: #ecfdf5;        /* light emerald */
-  --color-surface: #fdfcf7;       /* warm off-white for cards */
+  --color-secondary: #10b981;          /* emerald (interactive accent) */
+  --color-secondary-foreground: #022c22; /* deep green — never white on emerald */
+  --color-accent: #ecfdf5;             /* light emerald surface */
+  --color-accent-foreground: #064e3b;
+  --color-gold: #b7973c;               /* rare premium accent */
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #0ea5e9;
+
+  /* Neutrals / surfaces */
+  --color-background: #ffffff;
+  --color-surface: #fdfcf7;            /* warm off-white for cards */
+  --color-surface-2: #f5f4ef;          /* inset / input surface */
+  --color-border: #e7e5e0;
+  --color-border-strong: #d4d2cc;
+  --color-foreground: #18181b;         /* zinc-900 */
   --color-muted: #f5f4ef;
   --color-muted-foreground: #6b7280;
-  --color-gold: #b7973c;          /* warm gold accent */
-  --font-heading: "Poppins", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+
+  /* Typography */
+  --font-heading: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Radius scale */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  /* Elevation — tinted with brand green for cohesion */
+  --shadow-xs: 0 1px 2px 0 rgb(6 78 59 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(6 78 59 / 0.06), 0 1px 2px -1px rgb(6 78 59 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(6 78 59 / 0.08), 0 2px 6px -2px rgb(6 78 59 / 0.06);
+  --shadow-lg: 0 12px 28px -6px rgb(6 78 59 / 0.12), 0 6px 12px -6px rgb(6 78 59 / 0.08);
+  --shadow-xl: 0 24px 48px -12px rgb(6 78 59 / 0.18);
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #18181b; /* zinc-900 */
+  --foreground: #18181b;
 
-  /* Font stacks (previously injected by next/font/google). These resolve to
-     locally-installed Poppins/Inter when available, otherwise the platform UI
-     font — so the app renders without any build-time network font download. */
+  /* Font stacks consumed by inline styles / next/font/local once .woff2 files
+     are added to app/fonts (see docs/redesign/04-IMPLEMENTATION.md §3). Until
+     then these degrade gracefully to locally-installed / system fonts — no
+     build-time network font download. */
   --font-poppins: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-inter: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-playfair: "Poppins", "Segoe UI", system-ui, sans-serif; /* unified to brand heading font */
+}
+
+/* Dark palette — opt-in: add the `dark` class to <html> to activate. Shipped
+   light-only today (nothing toggles it); kept here so dark mode is a 1-line
+   switch later without touching components. */
+.dark {
+  --color-primary: #34d399;
+  --color-primary-hover: #6ee7b7;
+  --color-primary-foreground: #022c22;
+  --color-accent: #064e3b;
+  --color-accent-foreground: #a7f3d0;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #f87171;
+  --color-info: #38bdf8;
+  --color-background: #0a0a0a;
+  --color-surface: #171717;
+  --color-surface-2: #262626;
+  --color-border: #2a2a2a;
+  --color-border-strong: #3f3f46;
+  --color-foreground: #fafafa;
+  --color-muted: #262626;
+  --color-muted-foreground: #a1a1aa;
+  --background: #0a0a0a;
+  --foreground: #fafafa;
 }
 
 body {
@@ -32,66 +97,76 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection {
-  background-color: #10b981;
-  color: white;
-}
-
-/* Classic Heading Style */
-.heading-classic {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
-  line-height: 1.15;
 }
 
-/* Glass Utility */
-.glass {
-  @apply bg-white/90 backdrop-blur-md border border-zinc-200 shadow-sm;
+::selection {
+  background-color: #10b981;
+  color: #022c22;
 }
 
-/* Solid Text for classic basic design */
-.text-gradient {
-  @apply text-primary;
+/* ── Base layer: accessibility defaults ──────────────────────────────────── */
+@layer base {
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-/* Classic card border with subtle inner shadow */
-.card-classic {
-  @apply bg-white border border-zinc-200 rounded-2xl shadow-sm;
+/* ── Component utilities (replace the old ad-hoc helpers) ─────────────────── */
+@layer components {
+  /* Repeated "eyebrow" pill (WELCOME / badge) */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase
+           tracking-widest text-secondary bg-secondary/10 border border-secondary/20 rounded-full;
+  }
+  /* The repeated w-12 h-1 accent rule */
+  .rule-accent { @apply w-12 h-1 rounded-full bg-primary; }
+
+  .font-heading { font-family: var(--font-heading); }
+  .font-body { font-family: var(--font-body); }
+
+  .heading-classic { font-family: var(--font-heading); letter-spacing: -0.02em; line-height: 1.15; }
+
+  /* Real gradient text (was previously a flat @apply text-primary) */
+  .text-gradient {
+    @apply bg-gradient-to-r from-secondary to-emerald-300 bg-clip-text text-transparent;
+  }
+
+  .glass { @apply bg-surface/80 backdrop-blur-md border border-border shadow-sm; }
+  .card-classic { @apply bg-surface border border-border rounded-2xl shadow-sm; }
+
+  .section-divider::before {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+  }
 }
 
-/* Section divider ornament */
-.section-divider::before {
-  content: "";
-  display: block;
-  width: 3rem;
-  height: 3px;
-  background: linear-gradient(90deg, #064e3b, #10b981);
-  border-radius: 9999px;
-  margin-bottom: 1rem;
-}
-
-/* Animations */
+/* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-.animate-fade-up {
-  animation: fade-up 0.7s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
-}
-
+.animate-fade-up { animation: fade-up 0.7s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }

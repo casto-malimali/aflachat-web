@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/components/LanguageContext";
-import { ThemeProvider } from "@/components/ThemeContext";
 
 // Note: fonts are loaded via CSS variables defined in globals.css (Poppins/Inter
 // with system fallbacks) rather than next/font/google. next/font downloads the
@@ -63,13 +62,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body
-        className="antialiased"
-        style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)" }}
-      >
-        <LanguageProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </LanguageProvider>
+      <body className="antialiased font-body">
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

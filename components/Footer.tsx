@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-5">
               <img src="/images/AflaChatLogo.png" alt="AflaChat logo" className="w-9 h-9 object-contain rounded-lg" />
-              <span className="font-bold text-xl tracking-tight" style={{ fontFamily: "var(--font-poppins,'Poppins',system-ui,sans-serif)" }}>
+              <span className="font-heading font-bold text-xl tracking-tight">
                 Afla<span className="text-secondary">Chat</span>
               </span>
             </Link>
