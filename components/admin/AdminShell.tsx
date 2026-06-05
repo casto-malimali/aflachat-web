@@ -10,7 +10,7 @@ import {
   LogOut,
   ExternalLink,
 } from "lucide-react";
-import { clearAdminKey, getAdminKey, verifyAndStoreKey } from "@/lib/adminApi";
+import { clearAdminKey, getAdminKey, loginWithCredentials } from "@/lib/adminApi";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -18,13 +18,13 @@ const NAV = [
 ];
 
 /**
- * Wraps the admin dashboard: shows the key-entry gate until a valid admin key
- * is present, then renders the sidebar shell around the page.
+ * Wraps the admin dashboard: shows the email/password sign-in gate until a
+ * valid admin session token is present, then renders the sidebar shell.
  */
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState<boolean | null>(null); // null = checking
 
-  // Read the key from sessionStorage on mount. This is a genuine external-system
+  // Read the token from sessionStorage on mount. This is a genuine external-system
   // sync (sessionStorage is unavailable during SSR), so the initial setState here
   // is intentional rather than a cascading-render smell.
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }, []);
 
   if (authed === null) return <div className="min-h-screen bg-gray-50" />;
-  if (!authed) return <KeyGate onSuccess={() => setAuthed(true)} />;
+  if (!authed) return <LoginGate onSuccess={() => setAuthed(true)} />;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -100,8 +100,9 @@ function Sidebar({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function KeyGate({ onSuccess }: { onSuccess: () => void }) {
-  const [key, setKey] = useState("");
+function LoginGate({ onSuccess }: { onSuccess: () => void }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -109,48 +110,59 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    try {
-      const ok = await verifyAndStoreKey(key.trim());
-      if (ok) onSuccess();
-      else setError("That admin key was rejected.");
-    } catch {
-      setError("Could not reach the backend. Check the API URL and try again.");
-    } finally {
-      setBusy(false);
+    const result = await loginWithCredentials(email.trim(), password);
+    setBusy(false);
+    if (result.ok) {
+      onSuccess();
+    } else if (result.reason === "invalid") {
+      setError("Incorrect email or password.");
+    } else {
+      setError("Could not reach the backend. Check your connection and try again.");
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0a2e22] px-4">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-2xl bg-white p-7 shadow-xl"
-      >
+      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-7 shadow-xl">
         <div className="mb-5 flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-emerald-600" />
           <h1 className="text-lg font-bold text-gray-900">Admin sign in</h1>
         </div>
         <p className="mb-4 text-sm text-gray-500">
-          Enter the admin key to view AflaChat analytics and logs.
+          Sign in with your admin email and password to view AflaChat analytics and logs.
         </p>
+
+        <label className="mb-1 block text-xs font-medium text-gray-600">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@aflachat.co.tz"
+          autoComplete="username"
+          autoFocus
+          className="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+        />
+
+        <label className="mb-1 block text-xs font-medium text-gray-600">Password</label>
         <input
           type="password"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder="Admin key"
-          autoFocus
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          autoComplete="current-password"
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
         />
+
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         <button
           type="submit"
-          disabled={busy || !key.trim()}
+          disabled={busy || !email.trim() || !password}
           className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
         >
-          {busy ? "Verifying…" : "Sign in"}
+          {busy ? "Signing in…" : "Sign in"}
         </button>
         <p className="mt-4 text-center text-xs text-gray-400">
-          The key is stored only for this browser tab.
+          Your session is kept only for this browser tab.
         </p>
       </form>
     </div>

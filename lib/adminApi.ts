@@ -40,6 +40,38 @@ async function adminFetch<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/**
+ * Logs in with admin email + password. On success the backend returns the
+ * admin token, which we store and then send as `x-admin-key` on every request.
+ * Returns the failure reason (or null on success) so the UI can be specific.
+ */
+export async function loginWithCredentials(
+  email: string,
+  password: string,
+): Promise<{ ok: true } | { ok: false; reason: "invalid" | "network" }> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/api/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      cache: "no-store",
+    });
+  } catch {
+    return { ok: false, reason: "network" };
+  }
+  if (res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { token?: string };
+    if (data.token) {
+      setAdminKey(data.token);
+      return { ok: true };
+    }
+    return { ok: false, reason: "network" };
+  }
+  if (res.status === 401) return { ok: false, reason: "invalid" };
+  return { ok: false, reason: "network" };
+}
+
 /** Verifies a candidate key against the API and stores it on success. */
 export async function verifyAndStoreKey(key: string): Promise<boolean> {
   const res = await fetch(`${BASE_URL}/api/analytics/overview`, {
