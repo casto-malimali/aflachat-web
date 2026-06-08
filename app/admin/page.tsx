@@ -31,8 +31,19 @@ const onAuthError = () => {
   if (typeof window !== "undefined") window.location.reload();
 };
 
+/** Read the saved default analytics range from the Settings page (if any). */
+function defaultRange(): (typeof RANGES)[number] {
+  if (typeof window === "undefined") return 30;
+  try {
+    const saved = Number(JSON.parse(localStorage.getItem("aflachat_admin_prefs") ?? "{}").defaultRange);
+    return (RANGES as readonly number[]).includes(saved) ? (saved as (typeof RANGES)[number]) : 30;
+  } catch {
+    return 30;
+  }
+}
+
 export default function OverviewPage() {
-  const [days, setDays] = useState<(typeof RANGES)[number]>(30);
+  const [days, setDays] = useState<(typeof RANGES)[number]>(defaultRange);
 
   const overview = useAdminData(() => api.overview(), [], onAuthError);
   const series = useAdminData(() => api.timeseries(days), [days], onAuthError);

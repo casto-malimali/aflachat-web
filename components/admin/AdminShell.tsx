@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ScrollText,
+  Users,
+  UserCircle,
+  Settings,
   ShieldCheck,
   LogOut,
   ExternalLink,
@@ -14,27 +17,46 @@ import {
   X,
   Bell,
   ChevronDown,
+  Mail,
   Lock,
   ArrowRight,
   Leaf,
 } from "lucide-react";
-import {
-  api,
-  clearAdminKey,
-  getAdminKey,
-  verifyAndStoreKey,
-  type Overview,
-} from "@/lib/adminApi";
+import { api, type Overview } from "@/lib/adminApi";
+import { useAuth } from "@/components/admin/AuthContext";
+import type { AdminUser } from "@/lib/authApi";
 
-type NavItem = { href: string; label: string; icon: typeof LayoutDashboard; description: string };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  description: string;
+  adminOnly?: boolean;
+};
 
-const NAV: NavItem[] = [
+const MAIN_NAV: NavItem[] = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, description: "Analytics & KPIs" },
   { href: "/admin/logs", label: "Logs", icon: ScrollText, description: "Sessions & activity" },
+  { href: "/admin/users", label: "Users", icon: Users, description: "Manage accounts", adminOnly: true },
 ];
 
+const ACCOUNT_NAV: NavItem[] = [
+  { href: "/admin/profile", label: "Profile", icon: UserCircle, description: "Your account" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, description: "Preferences" },
+];
+
+const ALL_NAV = [...MAIN_NAV, ...ACCOUNT_NAV];
+
 function pageTitle(pathname: string): string {
-  return NAV.find((n) => n.href === pathname)?.label ?? "Admin";
+  // Longest-prefix match so nested routes (e.g. /admin/logs/123) still resolve.
+  const match = ALL_NAV.filter((n) => pathname === n.href || pathname.startsWith(`${n.href}/`)).sort(
+    (a, b) => b.href.length - a.href.length,
+  )[0];
+  return match?.label ?? "Admin";
+}
+
+function visibleMainNav(role: AdminUser["role"] | undefined): NavItem[] {
+  return MAIN_NAV.filter((n) => !n.adminOnly || role === "admin");
 }
 
 /** Close a popover when clicking outside the referenced element or pressing Escape. */
@@ -57,22 +79,14 @@ function useDismiss(open: boolean, onClose: () => void) {
 }
 
 /**
- * Wraps the admin dashboard: shows the split-screen sign-in gate until a valid
- * admin key is present, then renders the responsive shell (sidebar on desktop,
- * drawer + top bar + bottom tab bar on mobile) around the page.
+ * Wraps the admin dashboard: shows the split-screen sign-in screen until a valid
+ * session exists, then renders the responsive shell (sidebar on desktop, drawer
+ * + top bar + bottom tab bar on mobile) around the page.
  */
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const [authed, setAuthed] = useState<boolean | null>(null); // null = checking
+  const { user, loading } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
-
-  // Read the key from sessionStorage on mount. This is a genuine external-system
-  // sync (sessionStorage is unavailable during SSR), so the initial setState here
-  // is intentional rather than a cascading-render smell.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAuthed(Boolean(getAdminKey()));
-  }, []);
 
   // Close the mobile drawer whenever the route changes. Syncing UI state to the
   // router's pathname is a legitimate external-system sync, not a render cascade.
@@ -91,37 +105,28 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     };
   }, [drawerOpen]);
 
-  if (authed === null) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
       </div>
     );
   }
-  if (!authed) return <KeyGate onSuccess={() => setAuthed(true)} />;
-
-  const logout = () => {
-    clearAdminKey();
-    setAuthed(false);
-  };
+  if (!user) return <LoginScreen />;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Desktop sidebar */}
-      <DesktopSidebar onLogout={logout} />
-
-      {/* Mobile drawer */}
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={logout} />
+      <DesktopSidebar user={user} />
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
 
       <div className="md:pl-64">
-        <Topbar onMenu={() => setDrawerOpen(true)} onLogout={logout} />
+        <Topbar user={user} onMenu={() => setDrawerOpen(true)} />
         <main className="mx-auto max-w-6xl px-4 pb-24 pt-5 sm:px-6 md:pb-10 lg:px-8">
           {children}
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — app-like navigation */}
-      <BottomNav />
+      <BottomNav user={user} />
     </div>
   );
 }
@@ -143,12 +148,12 @@ function Brand({ subtitle = "Admin" }: { subtitle?: string }) {
   );
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavSection({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav className="flex-1 space-y-1 px-3 py-4">
-      {NAV.map(({ href, label, icon: Icon, description }) => {
-        const active = pathname === href;
+    <div className="space-y-1">
+      {items.map(({ href, label, icon: Icon, description }) => {
+        const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}
@@ -164,7 +169,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             {active && (
               <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-emerald-400" aria-hidden />
             )}
-            <Icon className={`h-5 w-5 shrink-0 ${active ? "text-emerald-300" : "text-emerald-200/60 group-hover:text-emerald-200"}`} />
+            <Icon
+              className={`h-5 w-5 shrink-0 ${active ? "text-emerald-300" : "text-emerald-200/60 group-hover:text-emerald-200"}`}
+            />
             <span className="flex flex-col">
               {label}
               <span className="text-[11px] font-normal text-emerald-100/40">{description}</span>
@@ -172,6 +179,20 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+function NavLinks({ user, onNavigate }: { user: AdminUser; onNavigate?: () => void }) {
+  return (
+    <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <NavSection items={visibleMainNav(user.role)} onNavigate={onNavigate} />
+      <div>
+        <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-emerald-200/40">
+          Account
+        </p>
+        <NavSection items={ACCOUNT_NAV} onNavigate={onNavigate} />
+      </div>
     </nav>
   );
 }
@@ -184,14 +205,14 @@ function SidebarFooter({ onLogout, onNavigate }: { onLogout: () => void; onNavig
         onClick={onNavigate}
         className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50/70 transition-colors hover:bg-white/5 hover:text-white"
       >
-        <ExternalLink className="h-4.5 w-4.5" />
+        <ExternalLink className="h-[18px] w-[18px]" />
         View site
       </Link>
       <button
         onClick={onLogout}
         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50/70 transition-colors hover:bg-red-500/10 hover:text-red-200"
       >
-        <LogOut className="h-4.5 w-4.5" />
+        <LogOut className="h-[18px] w-[18px]" />
         Sign out
       </button>
     </div>
@@ -200,7 +221,15 @@ function SidebarFooter({ onLogout, onNavigate }: { onLogout: () => void; onNavig
 
 const SIDEBAR_BG = "bg-gradient-to-b from-[#0c3a2a] via-[#0a3225] to-[#062c20]";
 
-function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
+function useLogout() {
+  const { logout } = useAuth();
+  return () => {
+    void logout();
+  };
+}
+
+function DesktopSidebar({ user }: { user: AdminUser }) {
+  const logout = useLogout();
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/5 ${SIDEBAR_BG} md:flex`}
@@ -208,8 +237,8 @@ function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
       <div className="px-5 py-5">
         <Brand />
       </div>
-      <NavLinks />
-      <SidebarFooter onLogout={onLogout} />
+      <NavLinks user={user} />
+      <SidebarFooter onLogout={logout} />
     </aside>
   );
 }
@@ -217,15 +246,15 @@ function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
 function MobileDrawer({
   open,
   onClose,
-  onLogout,
+  user,
 }: {
   open: boolean;
   onClose: () => void;
-  onLogout: () => void;
+  user: AdminUser;
 }) {
+  const logout = useLogout();
   return (
     <div className={`md:hidden ${open ? "" : "pointer-events-none"}`}>
-      {/* Scrim */}
       <div
         onClick={onClose}
         className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
@@ -233,7 +262,6 @@ function MobileDrawer({
         }`}
         aria-hidden
       />
-      {/* Panel */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col ${SIDEBAR_BG} shadow-2xl transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "-translate-x-full"
@@ -252,15 +280,15 @@ function MobileDrawer({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <NavLinks onNavigate={onClose} />
-        <SidebarFooter onLogout={onLogout} onNavigate={onClose} />
+        <NavLinks user={user} onNavigate={onClose} />
+        <SidebarFooter onLogout={logout} onNavigate={onClose} />
       </aside>
     </div>
   );
 }
 
 // ── Top navigation bar ──────────────────────────────────────────────────────────
-function Topbar({ onMenu, onLogout }: { onMenu: () => void; onLogout: () => void }) {
+function Topbar({ user, onMenu }: { user: AdminUser; onMenu: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -282,7 +310,7 @@ function Topbar({ onMenu, onLogout }: { onMenu: () => void; onLogout: () => void
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
         <Notifications />
-        <ProfileMenu onLogout={onLogout} />
+        <ProfileMenu user={user} />
       </div>
     </header>
   );
@@ -368,9 +396,32 @@ function Notifications() {
   );
 }
 
-function ProfileMenu({ onLogout }: { onLogout: () => void }) {
+function RoleBadge({ role }: { role: AdminUser["role"] }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset ${
+        role === "admin"
+          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+          : "bg-slate-100 text-slate-600 ring-slate-200"
+      }`}
+    >
+      {role}
+    </span>
+  );
+}
+
+function ProfileMenu({ user }: { user: AdminUser }) {
   const [open, setOpen] = useState(false);
   const ref = useDismiss(open, () => setOpen(false));
+  const logout = useLogout();
+
+  const initials =
+    user.name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?";
 
   return (
     <div className="relative" ref={ref}>
@@ -380,27 +431,48 @@ function ProfileMenu({ onLogout }: { onLogout: () => void }) {
         aria-label="Account menu"
         aria-expanded={open}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-sm">
-          <ShieldCheck className="h-4.5 w-4.5" />
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-sm font-semibold text-white shadow-sm">
+          {initials}
         </span>
-        <span className="hidden text-left sm:block">
-          <span className="block text-sm font-semibold leading-tight text-slate-800">Administrator</span>
+        <span className="hidden max-w-[10rem] text-left sm:block">
+          <span className="block truncate text-sm font-semibold leading-tight text-slate-800">
+            {user.name}
+          </span>
         </span>
         <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-56 origin-top-right animate-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+        <div className="absolute right-0 top-12 w-64 origin-top-right animate-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
           <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white">
-              <ShieldCheck className="h-5 w-5" />
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-sm font-semibold text-white">
+              {initials}
             </span>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold text-slate-900">Administrator</p>
-              <p className="text-xs text-slate-400">Signed in this tab</p>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-sm font-semibold text-slate-900">{user.name}</p>
+              <p className="truncate text-xs text-slate-400">{user.email}</p>
+              <span className="mt-1 inline-block">
+                <RoleBadge role={user.role} />
+              </span>
             </div>
           </div>
           <div className="p-1.5">
+            <Link
+              href="/admin/profile"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <UserCircle className="h-4 w-4 text-slate-400" />
+              Your profile
+            </Link>
+            <Link
+              href="/admin/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Settings className="h-4 w-4 text-slate-400" />
+              Settings
+            </Link>
             <Link
               href="/"
               onClick={() => setOpen(false)}
@@ -410,7 +482,7 @@ function ProfileMenu({ onLogout }: { onLogout: () => void }) {
               View site
             </Link>
             <button
-              onClick={onLogout}
+              onClick={logout}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
             >
               <LogOut className="h-4 w-4" />
@@ -424,12 +496,13 @@ function ProfileMenu({ onLogout }: { onLogout: () => void }) {
 }
 
 // ── Mobile bottom tab bar ─────────────────────────────────────────────────────────
-function BottomNav() {
+function BottomNav({ user }: { user: AdminUser }) {
   const pathname = usePathname();
+  const items = [...visibleMainNav(user.role), ACCOUNT_NAV[0]]; // + Profile
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-      {NAV.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href;
+      {items.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}
@@ -455,8 +528,10 @@ function BottomNav() {
 }
 
 // ── Split-screen sign-in ──────────────────────────────────────────────────────────
-function KeyGate({ onSuccess }: { onSuccess: () => void }) {
-  const [key, setKey] = useState("");
+function LoginScreen() {
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -465,11 +540,9 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      const ok = await verifyAndStoreKey(key.trim());
-      if (ok) onSuccess();
-      else setError("That admin key was rejected.");
-    } catch {
-      setError("Could not reach the backend. Check the API URL and try again.");
+      await login(email.trim(), password);
+    } catch (err) {
+      setError((err as Error).message || "Sign in failed. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -480,7 +553,6 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
       {/* Left — branding + form */}
       <div className="relative flex flex-col justify-center bg-white px-6 py-10 sm:px-10 lg:px-16">
         <div className="mx-auto w-full max-w-md animate-fade-up">
-          {/* Logo */}
           <Link href="/" className="mb-10 inline-flex items-center gap-3">
             <Image
               src="/images/AflaChatLogo.png"
@@ -503,23 +575,41 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Enter your admin key to view AflaChat analytics, sessions and logs.
+            Sign in to view AflaChat analytics, sessions and manage your team.
           </p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
             <div>
-              <label htmlFor="admin-key" className="mb-1.5 block text-sm font-medium text-slate-700">
-                Admin key
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Email
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
                 <input
-                  id="admin-key"
-                  type="password"
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  placeholder="Enter your admin key"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@aflachat.app"
                   autoFocus
+                  autoComplete="username"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" />
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   autoComplete="current-password"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
                 />
@@ -534,13 +624,13 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
 
             <button
               type="submit"
-              disabled={busy || !key.trim()}
+              disabled={busy || !email.trim() || !password}
               className="group flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Verifying…
+                  Signing in…
                 </>
               ) : (
                 <>
@@ -553,7 +643,7 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
 
           <p className="mt-6 flex items-center gap-2 text-xs text-slate-400">
             <ShieldCheck className="h-4 w-4 text-emerald-500" />
-            Your key is stored only for this browser tab.
+            Your session is kept only for this browser tab.
           </p>
         </div>
       </div>

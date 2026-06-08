@@ -1,57 +1,12 @@
 // Client for the AflaChat admin analytics API (the /api/analytics/* routes,
-// gated by the admin key). The key is held in sessionStorage only — it never
-// ships in the bundle and is cleared when the tab closes or on logout.
+// gated by a bearer session token issued at login — see lib/authApi.ts).
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8080";
+import { apiRequest, AuthError } from "./http";
 
-const KEY_STORAGE = "aflachat_admin_key";
+/** Re-exported under the historical name so existing call sites keep working. */
+export const AdminAuthError = AuthError;
 
-export function getAdminKey(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.sessionStorage.getItem(KEY_STORAGE);
-}
-
-export function setAdminKey(key: string): void {
-  window.sessionStorage.setItem(KEY_STORAGE, key);
-}
-
-export function clearAdminKey(): void {
-  window.sessionStorage.removeItem(KEY_STORAGE);
-}
-
-export class AdminAuthError extends Error {}
-
-async function adminFetch<T>(path: string): Promise<T> {
-  const key = getAdminKey();
-  if (!key) throw new AdminAuthError("No admin key");
-  const res = await fetch(`${BASE_URL}/api/analytics${path}`, {
-    headers: { "x-admin-key": key },
-    cache: "no-store",
-  });
-  if (res.status === 401) {
-    clearAdminKey();
-    throw new AdminAuthError("Invalid admin key");
-  }
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.error?.message || `Request failed: ${res.status}`);
-  }
-  return (await res.json()) as T;
-}
-
-/** Verifies a candidate key against the API and stores it on success. */
-export async function verifyAndStoreKey(key: string): Promise<boolean> {
-  const res = await fetch(`${BASE_URL}/api/analytics/overview`, {
-    headers: { "x-admin-key": key },
-    cache: "no-store",
-  });
-  if (res.ok) {
-    setAdminKey(key);
-    return true;
-  }
-  return false;
-}
+const adminFetch = <T>(path: string) => apiRequest<T>(`/api/analytics${path}`);
 
 // ── Response shapes ───────────────────────────────────────────────────────────
 export type PlatformSplit = { web: number; android: number; ios: number; other: number };

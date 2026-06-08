@@ -1,7 +1,17 @@
 "use client";
 
-import { type ComponentType, type ReactNode } from "react";
-import { Inbox } from "lucide-react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ButtonHTMLAttributes,
+  type ComponentType,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react";
+import { CheckCircle2, Inbox, Loader2, X, XCircle } from "lucide-react";
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 export function fmtNum(n: number): string {
@@ -173,10 +183,12 @@ export function EmptyState({
   label = "Nothing here yet.",
   hint,
   icon: Icon = Inbox,
+  action,
 }: {
   label?: string;
   hint?: string;
   icon?: ComponentType<{ className?: string }>;
+  action?: ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-3 py-14 text-center">
@@ -185,6 +197,257 @@ export function EmptyState({
       </span>
       <p className="text-sm font-medium text-slate-500">{label}</p>
       {hint && <p className="max-w-xs text-xs text-slate-400">{hint}</p>}
+      {action && <div className="mt-1">{action}</div>}
     </div>
   );
+}
+
+// ── Form primitives ───────────────────────────────────────────────────────────
+type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+
+const BUTTON_STYLES: Record<ButtonVariant, string> = {
+  primary: "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50",
+  secondary:
+    "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50",
+  danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 disabled:opacity-50",
+  ghost: "text-slate-600 hover:bg-slate-100 disabled:opacity-50",
+};
+
+export function Button({
+  variant = "primary",
+  loading = false,
+  icon: Icon,
+  children,
+  className = "",
+  disabled,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  loading?: boolean;
+  icon?: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <button
+      {...rest}
+      disabled={disabled || loading}
+      className={`inline-flex min-h-[2.5rem] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed ${BUTTON_STYLES[variant]} ${className}`}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        Icon && <Icon className="h-4 w-4" />
+      )}
+      {children}
+    </button>
+  );
+}
+
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  htmlFor,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: ReactNode;
+  htmlFor?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-slate-700">
+        {label}
+      </label>
+      {children}
+      {error ? (
+        <p className="mt-1 text-xs text-red-600">{error}</p>
+      ) : hint ? (
+        <p className="mt-1 text-xs text-slate-400">{hint}</p>
+      ) : null}
+    </div>
+  );
+}
+
+const CONTROL =
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-60";
+
+export function Input({ className = "", ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...rest} className={`${CONTROL} ${className}`} />;
+}
+
+export function Select({
+  className = "",
+  children,
+  ...rest
+}: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select {...rest} className={`${CONTROL} ${className}`}>
+      {children}
+    </select>
+  );
+}
+
+export function Badge({
+  children,
+  tone = "slate",
+}: {
+  children: ReactNode;
+  tone?: "emerald" | "amber" | "red" | "sky" | "slate";
+}) {
+  const tones: Record<string, string> = {
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    amber: "bg-amber-50 text-amber-700 ring-amber-200",
+    red: "bg-red-50 text-red-700 ring-red-200",
+    sky: "bg-sky-50 text-sky-700 ring-sky-200",
+    slate: "bg-slate-100 text-slate-600 ring-slate-200",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${tones[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** Deterministic gradient avatar from a name/email, with initials. */
+export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+  const initials =
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?";
+  const hues = ["#10b981", "#0ea5e9", "#6366f1", "#f59e0b", "#ec4899", "#14b8a6"];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const color = hues[h % hues.length];
+  return (
+    <span
+      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white"
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.38,
+        background: `linear-gradient(135deg, ${color}, ${color}cc)`,
+      }}
+      aria-hidden
+    >
+      {initials}
+    </span>
+  );
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+export function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+      <div
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
+        onClick={onClose}
+        aria-hidden
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="relative w-full max-w-lg animate-fade-up overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">{title}</h2>
+            {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
+          </div>
+          <button
+            onClick={onClose}
+            className="-mr-1 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </header>
+        <div className="max-h-[70vh] overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+        {footer && (
+          <footer className="flex flex-col-reverse gap-2 border-t border-slate-100 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+            {footer}
+          </footer>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Toasts ────────────────────────────────────────────────────────────────────
+type Toast = { id: number; message: string; tone: "success" | "error" };
+
+const ToastContext = createContext<{ notify: (message: string, tone?: Toast["tone"]) => void } | null>(
+  null,
+);
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const notify = (message: string, tone: Toast["tone"] = "success") => {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, message, tone }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
+  };
+
+  return (
+    <ToastContext.Provider value={{ notify }}>
+      {children}
+      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6 sm:right-6 sm:left-auto sm:items-end">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-lg animate-fade-up"
+          >
+            {t.tone === "success" ? (
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
+            ) : (
+              <XCircle className="h-5 w-5 shrink-0 text-red-500" />
+            )}
+            {t.message}
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error("useToast must be used within a ToastProvider");
+  return ctx;
 }
