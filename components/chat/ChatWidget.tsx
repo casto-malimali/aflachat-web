@@ -173,12 +173,7 @@ export default function ChatWidget() {
     }
   }, []);
 
-  // ── Allow CTAs anywhere to open the assistant ──
-  useEffect(() => {
-    const openHandler = () => setOpen(true);
-    window.addEventListener("aflachat:open", openHandler);
-    return () => window.removeEventListener("aflachat:open", openHandler);
-  }, []);
+
 
   // ── Focus the composer when opening ──
   useEffect(() => {
@@ -267,6 +262,27 @@ export default function ChatWidget() {
     },
     [input, loading, streaming, lang, t, streamInto],
   );
+
+  // ── Allow CTAs anywhere to open the assistant ──
+  useEffect(() => {
+    const openHandler = () => setOpen(true);
+    const askHandler = (e: Event) => {
+      const customEvent = e as CustomEvent<{ question: string }>;
+      const question = customEvent.detail?.question;
+      setOpen(true);
+      if (question) {
+        setTimeout(() => {
+          ask(question);
+        }, 100);
+      }
+    };
+    window.addEventListener("aflachat:open", openHandler);
+    window.addEventListener("aflachat:ask", askHandler);
+    return () => {
+      window.removeEventListener("aflachat:open", openHandler);
+      window.removeEventListener("aflachat:ask", askHandler);
+    };
+  }, [ask]);
 
   const regenerate = useCallback(() => {
     if (loading || streaming) return;

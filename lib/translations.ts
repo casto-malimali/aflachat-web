@@ -7,6 +7,7 @@ export const translations = {
       terms: "Terms & Conditions",
       contact: "Contact Us",
       download: "Download App",
+      blog: "Blog",
     },
     hero: {
       welcome: "Welcome to AflaChat",
@@ -131,6 +132,7 @@ export const translations = {
       terms: "Vigezo na Masharti",
       contact: "Wasiliana Nasi",
       download: "Pakua App",
+      blog: "Blog",
     },
     hero: {
       welcome: "Karibu AflaChat",

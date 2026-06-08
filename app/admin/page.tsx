@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import {
+  RefreshCw,
+  Users,
+  MessageSquare,
+  Gauge,
+  Timer,
+  MessagesSquare,
+  HelpCircle,
+  WifiOff,
+  Globe,
+} from "lucide-react";
 import { api } from "@/lib/adminApi";
 import { useAdminData } from "@/components/admin/useAdmin";
 import { BarList, Donut, LineChart } from "@/components/admin/charts";
@@ -10,6 +20,7 @@ import {
   Panel,
   Spinner,
   StatCard,
+  StatCardSkeleton,
   fmtDuration,
   fmtNum,
 } from "@/components/admin/ui";
@@ -44,52 +55,56 @@ export default function OverviewPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Overview</h1>
-          <p className="text-sm text-gray-500">Analytics across the website and mobile app.</p>
+          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">Dashboard overview</h2>
+          <p className="text-sm text-slate-500">Analytics across the website and mobile app.</p>
         </div>
         <button
           onClick={refreshAll}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </header>
 
       {/* KPI cards */}
       {overview.loading ? (
-        <Spinner />
+        <StatCardSkeleton count={8} />
       ) : overview.error ? (
         <ErrorState message={overview.error} onRetry={overview.refetch} />
       ) : o ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Sessions" value={fmtNum(o.sessions)} sub={`${o.endedSessions} ended`} />
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <StatCard label="Sessions" value={fmtNum(o.sessions)} sub={`${o.endedSessions} ended`} icon={Users} />
           <StatCard
             label="Messages"
             value={fmtNum(o.messages)}
             sub={`${fmtNum(o.userMessages)} from users`}
             accent="#0ea5e9"
+            icon={MessageSquare}
           />
           <StatCard
             label="Avg / session"
             value={o.avgMessagesPerSession}
             sub={fmtDuration(o.avgSessionMs)}
             accent="#0d9488"
+            icon={Gauge}
           />
           <StatCard
             label="Avg latency"
             value={`${fmtNum(o.avgLatencyMs)}ms`}
             sub={`${o.activeDays} active days`}
             accent="#f59e0b"
+            icon={Timer}
           />
-          <StatCard label="Community feedback" value={fmtNum(o.communityFeedback)} accent="#0f766e" />
-          <StatCard label="Unanswered" value={fmtNum(o.unanswered)} accent="#ef4444" />
-          <StatCard label="Offline attempts" value={fmtNum(o.offlineAttempts)} accent="#64748b" />
+          <StatCard label="Community feedback" value={fmtNum(o.communityFeedback)} accent="#0f766e" icon={MessagesSquare} />
+          <StatCard label="Unanswered" value={fmtNum(o.unanswered)} accent="#ef4444" icon={HelpCircle} />
+          <StatCard label="Offline attempts" value={fmtNum(o.offlineAttempts)} accent="#64748b" icon={WifiOff} />
           <StatCard
             label="Web sessions"
             value={p ? fmtNum(p.web) : "—"}
             sub={p ? `${p.android + p.ios + p.other} from app` : undefined}
             accent="#10b981"
+            icon={Globe}
           />
         </div>
       ) : null}
@@ -98,13 +113,13 @@ export default function OverviewPage() {
       <Panel
         title="Activity trend"
         action={
-          <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5">
+          <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
             {RANGES.map((r) => (
               <button
                 key={r}
                 onClick={() => setDays(r)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium ${
-                  days === r ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                  days === r ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
                 {r}d
@@ -207,7 +222,7 @@ export default function OverviewPage() {
 
 function Legend({ items }: { items: { label: string; color: string }[] }) {
   return (
-    <div className="mt-3 flex justify-center gap-5 text-xs text-gray-500">
+    <div className="mt-3 flex justify-center gap-5 text-xs text-slate-500">
       {items.map((i) => (
         <span key={i.label} className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: i.color }} />

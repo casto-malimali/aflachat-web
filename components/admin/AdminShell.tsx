@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -9,20 +10,61 @@ import {
   ShieldCheck,
   LogOut,
   ExternalLink,
+  Menu,
+  X,
+  Bell,
+  ChevronDown,
+  Lock,
+  ArrowRight,
+  Leaf,
 } from "lucide-react";
-import { clearAdminKey, getAdminKey, verifyAndStoreKey } from "@/lib/adminApi";
+import {
+  api,
+  clearAdminKey,
+  getAdminKey,
+  verifyAndStoreKey,
+  type Overview,
+} from "@/lib/adminApi";
 
-const NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/logs", label: "Logs", icon: ScrollText },
+type NavItem = { href: string; label: string; icon: typeof LayoutDashboard; description: string };
+
+const NAV: NavItem[] = [
+  { href: "/admin", label: "Overview", icon: LayoutDashboard, description: "Analytics & KPIs" },
+  { href: "/admin/logs", label: "Logs", icon: ScrollText, description: "Sessions & activity" },
 ];
 
+function pageTitle(pathname: string): string {
+  return NAV.find((n) => n.href === pathname)?.label ?? "Admin";
+}
+
+/** Close a popover when clicking outside the referenced element or pressing Escape. */
+function useDismiss(open: boolean, onClose: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+  return ref;
+}
+
 /**
- * Wraps the admin dashboard: shows the key-entry gate until a valid admin key
- * is present, then renders the sidebar shell around the page.
+ * Wraps the admin dashboard: shows the split-screen sign-in gate until a valid
+ * admin key is present, then renders the responsive shell (sidebar on desktop,
+ * drawer + top bar + bottom tab bar on mobile) around the page.
  */
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState<boolean | null>(null); // null = checking
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const pathname = usePathname();
 
   // Read the key from sessionStorage on mount. This is a genuine external-system
   // sync (sessionStorage is unavailable during SSR), so the initial setState here
@@ -32,74 +74,387 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     setAuthed(Boolean(getAdminKey()));
   }, []);
 
-  if (authed === null) return <div className="min-h-screen bg-gray-50" />;
+  // Close the mobile drawer whenever the route changes. Syncing UI state to the
+  // router's pathname is a legitimate external-system sync, not a render cascade.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll while the drawer is open.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [drawerOpen]);
+
+  if (authed === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+      </div>
+    );
+  }
   if (!authed) return <KeyGate onSuccess={() => setAuthed(true)} />;
 
+  const logout = () => {
+    clearAdminKey();
+    setAuthed(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <Sidebar onLogout={() => setAuthed(false)} />
-      <div className="md:pl-60">
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">{children}</main>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* Desktop sidebar */}
+      <DesktopSidebar onLogout={logout} />
+
+      {/* Mobile drawer */}
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onLogout={logout} />
+
+      <div className="md:pl-64">
+        <Topbar onMenu={() => setDrawerOpen(true)} onLogout={logout} />
+        <main className="mx-auto max-w-6xl px-4 pb-24 pt-5 sm:px-6 md:pb-10 lg:px-8">
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile bottom tab bar — app-like navigation */}
+      <BottomNav />
+    </div>
+  );
+}
+
+// ── Branding ────────────────────────────────────────────────────────────────────
+function Brand({ subtitle = "Admin" }: { subtitle?: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-400/20">
+        <Leaf className="h-5 w-5 text-emerald-300" />
+      </span>
+      <div className="leading-tight">
+        <p className="text-sm font-bold text-white">AflaChat</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-300/70">
+          {subtitle}
+        </p>
       </div>
     </div>
   );
 }
 
-function Sidebar({ onLogout }: { onLogout: () => void }) {
+function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-gray-800 bg-[#0a2e22] text-gray-200 md:flex">
-      <div className="flex items-center gap-2 px-5 py-5">
-        <ShieldCheck className="h-5 w-5 text-emerald-400" />
-        <div>
-          <p className="text-sm font-semibold text-white">AflaChat</p>
-          <p className="text-[11px] uppercase tracking-wider text-emerald-300/70">Admin</p>
-        </div>
-      </div>
-
-      <nav className="flex-1 px-3 py-2">
-        {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                active
-                  ? "bg-emerald-500/15 text-white"
-                  : "text-gray-300 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
+    <nav className="flex-1 space-y-1 px-3 py-4">
+      {NAV.map(({ href, label, icon: Icon, description }) => {
+        const active = pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
+            className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+              active
+                ? "bg-emerald-500/15 text-white shadow-sm"
+                : "text-emerald-50/70 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            {active && (
+              <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-emerald-400" aria-hidden />
+            )}
+            <Icon className={`h-5 w-5 shrink-0 ${active ? "text-emerald-300" : "text-emerald-200/60 group-hover:text-emerald-200"}`} />
+            <span className="flex flex-col">
               {label}
-            </Link>
-          );
-        })}
-      </nav>
+              <span className="text-[11px] font-normal text-emerald-100/40">{description}</span>
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
-      <div className="border-t border-white/10 px-3 py-3">
-        <Link
-          href="/"
-          className="mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-        >
-          <ExternalLink className="h-4 w-4" />
-          View site
-        </Link>
-        <button
-          onClick={() => {
-            clearAdminKey();
-            onLogout();
-          }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </button>
+function SidebarFooter({ onLogout, onNavigate }: { onLogout: () => void; onNavigate?: () => void }) {
+  return (
+    <div className="space-y-1 border-t border-white/10 px-3 py-3">
+      <Link
+        href="/"
+        onClick={onNavigate}
+        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50/70 transition-colors hover:bg-white/5 hover:text-white"
+      >
+        <ExternalLink className="h-4.5 w-4.5" />
+        View site
+      </Link>
+      <button
+        onClick={onLogout}
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-50/70 transition-colors hover:bg-red-500/10 hover:text-red-200"
+      >
+        <LogOut className="h-4.5 w-4.5" />
+        Sign out
+      </button>
+    </div>
+  );
+}
+
+const SIDEBAR_BG = "bg-gradient-to-b from-[#0c3a2a] via-[#0a3225] to-[#062c20]";
+
+function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
+  return (
+    <aside
+      className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/5 ${SIDEBAR_BG} md:flex`}
+    >
+      <div className="px-5 py-5">
+        <Brand />
       </div>
+      <NavLinks />
+      <SidebarFooter onLogout={onLogout} />
     </aside>
   );
 }
 
+function MobileDrawer({
+  open,
+  onClose,
+  onLogout,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <div className={`md:hidden ${open ? "" : "pointer-events-none"}`}>
+      {/* Scrim */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden
+      />
+      {/* Panel */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col ${SIDEBAR_BG} shadow-2xl transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        <div className="flex items-center justify-between px-5 py-5">
+          <Brand />
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-emerald-100/70 hover:bg-white/10 hover:text-white"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <NavLinks onNavigate={onClose} />
+        <SidebarFooter onLogout={onLogout} onNavigate={onClose} />
+      </aside>
+    </div>
+  );
+}
+
+// ── Top navigation bar ──────────────────────────────────────────────────────────
+function Topbar({ onMenu, onLogout }: { onMenu: () => void; onLogout: () => void }) {
+  const pathname = usePathname();
+
+  return (
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      <button
+        onClick={onMenu}
+        className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      <div className="min-w-0">
+        <h1 className="truncate text-base font-bold text-slate-900 sm:text-lg">
+          {pageTitle(pathname)}
+        </h1>
+        <p className="hidden text-xs text-slate-400 sm:block">AflaChat administration</p>
+      </div>
+
+      <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+        <Notifications />
+        <ProfileMenu onLogout={onLogout} />
+      </div>
+    </header>
+  );
+}
+
+function Notifications() {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<Overview | null>(null);
+  const ref = useDismiss(open, () => setOpen(false));
+
+  useEffect(() => {
+    let active = true;
+    api
+      .overview()
+      .then((o) => active && setData(o))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const items = data
+    ? [
+        { label: "Unanswered queries", value: data.unanswered, href: "/admin/logs", tone: "amber" as const },
+        { label: "Community feedback", value: data.communityFeedback, href: "/admin/logs", tone: "emerald" as const },
+        { label: "Offline attempts", value: data.offlineAttempts, href: "/admin/logs", tone: "slate" as const },
+      ]
+    : [];
+  const count = data?.unanswered ?? 0;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="relative rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
+        aria-label="Notifications"
+        aria-expanded={open}
+      >
+        <Bell className="h-5 w-5" />
+        {count > 0 && (
+          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-12 w-72 origin-top-right animate-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+          <div className="border-b border-slate-100 px-4 py-3">
+            <p className="text-sm font-semibold text-slate-900">Notifications</p>
+          </div>
+          <ul className="divide-y divide-slate-50">
+            {items.length === 0 ? (
+              <li className="px-4 py-6 text-center text-sm text-slate-400">Nothing new.</li>
+            ) : (
+              items.map((it) => (
+                <li key={it.label}>
+                  <Link
+                    href={it.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50"
+                  >
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
+                        it.tone === "amber"
+                          ? "bg-amber-50 text-amber-700"
+                          : it.tone === "emerald"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {it.value}
+                    </span>
+                    <span className="text-sm text-slate-700">{it.label}</span>
+                  </Link>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfileMenu({ onLogout }: { onLogout: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useDismiss(open, () => setOpen(false));
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-slate-100"
+        aria-label="Account menu"
+        aria-expanded={open}
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-sm">
+          <ShieldCheck className="h-4.5 w-4.5" />
+        </span>
+        <span className="hidden text-left sm:block">
+          <span className="block text-sm font-semibold leading-tight text-slate-800">Administrator</span>
+        </span>
+        <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-12 w-56 origin-top-right animate-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+          <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-white">
+              <ShieldCheck className="h-5 w-5" />
+            </span>
+            <div className="leading-tight">
+              <p className="text-sm font-semibold text-slate-900">Administrator</p>
+              <p className="text-xs text-slate-400">Signed in this tab</p>
+            </div>
+          </div>
+          <div className="p-1.5">
+            <Link
+              href="/"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ExternalLink className="h-4 w-4 text-slate-400" />
+              View site
+            </Link>
+            <button
+              onClick={onLogout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Mobile bottom tab bar ─────────────────────────────────────────────────────────
+function BottomNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      {NAV.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+              active ? "text-emerald-700" : "text-slate-400"
+            }`}
+          >
+            <span
+              className={`flex h-8 w-12 items-center justify-center rounded-full transition-colors ${
+                active ? "bg-emerald-50" : ""
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+// ── Split-screen sign-in ──────────────────────────────────────────────────────────
 function KeyGate({ onSuccess }: { onSuccess: () => void }) {
   const [key, setKey] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -121,38 +476,115 @@ function KeyGate({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0a2e22] px-4">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-2xl bg-white p-7 shadow-xl"
-      >
-        <div className="mb-5 flex items-center gap-2">
-          <ShieldCheck className="h-6 w-6 text-emerald-600" />
-          <h1 className="text-lg font-bold text-gray-900">Admin sign in</h1>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* Left — branding + form */}
+      <div className="relative flex flex-col justify-center bg-white px-6 py-10 sm:px-10 lg:px-16">
+        <div className="mx-auto w-full max-w-md animate-fade-up">
+          {/* Logo */}
+          <Link href="/" className="mb-10 inline-flex items-center gap-3">
+            <Image
+              src="/images/AflaChatLogo.png"
+              alt="AflaChat"
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-xl object-contain"
+              priority
+            />
+            <div className="leading-tight">
+              <p className="text-lg font-bold text-slate-900">AflaChat</p>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600">
+                Admin Console
+              </p>
+            </div>
+          </Link>
+
+          <span className="eyebrow mb-4">Secure access</span>
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Enter your admin key to view AflaChat analytics, sessions and logs.
+          </p>
+
+          <form onSubmit={submit} className="mt-8 space-y-4">
+            <div>
+              <label htmlFor="admin-key" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Admin key
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  id="admin-key"
+                  type="password"
+                  value={key}
+                  onChange={(e) => setKey(e.target.value)}
+                  placeholder="Enter your admin key"
+                  autoFocus
+                  autoComplete="current-password"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={busy || !key.trim()}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Verifying…
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 flex items-center gap-2 text-xs text-slate-400">
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+            Your key is stored only for this browser tab.
+          </p>
         </div>
-        <p className="mb-4 text-sm text-gray-500">
-          Enter the admin key to view AflaChat analytics and logs.
-        </p>
-        <input
-          type="password"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder="Admin key"
-          autoFocus
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+      </div>
+
+      {/* Right — hero image */}
+      <div className="relative hidden overflow-hidden lg:block">
+        <Image
+          src="/images/2148761810.jpg"
+          alt="Maize field representing agricultural food safety"
+          fill
+          sizes="50vw"
+          className="object-cover"
+          priority
         />
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy || !key.trim()}
-          className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
-        >
-          {busy ? "Verifying…" : "Sign in"}
-        </button>
-        <p className="mt-4 text-center text-xs text-gray-400">
-          The key is stored only for this browser tab.
-        </p>
-      </form>
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#062c20]/90 via-[#0a3225]/60 to-emerald-900/30" />
+        <div className="absolute inset-0 flex flex-col justify-end p-12">
+          <div className="max-w-md animate-fade-up">
+            <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-100 backdrop-blur-sm">
+              <Leaf className="h-3.5 w-3.5" />
+              AflaChat Platform
+            </span>
+            <h2 className="font-heading text-3xl font-bold leading-tight text-white xl:text-4xl">
+              Protecting crops and communities from aflatoxin.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-emerald-50/80">
+              Monitor conversations, track engagement, and understand how farmers
+              across Tanzania are staying safe — all from one dashboard.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

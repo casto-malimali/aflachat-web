@@ -50,6 +50,7 @@ export default function Navbar() {
   const navLinks = [
     { name: t.nav.home, href: "/" },
     { name: t.nav.services, href: "/services" },
+    { name: t.nav.blog, href: "/blog" },
     { name: t.nav.contact, href: "/contact" },
   ];
 

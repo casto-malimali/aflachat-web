@@ -37,9 +37,7 @@ export default function Home() {
               {t.hero.welcome}
             </span>
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
-              AI-Powered<br />
-              <span className="text-gradient">Protection</span><br />
-              Against Aflatoxin
+              {t.hero.headline}
             </h1>
             <p className="text-lg text-zinc-300 mb-10 leading-relaxed max-w-xl">{t.hero.description}</p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
