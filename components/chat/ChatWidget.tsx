@@ -17,6 +17,7 @@ import {
   type OfflineFaqEntry,
 } from "@/lib/chatApi";
 import { useFocusTrap } from "./useFocusTrap";
+import { suggestBestFaqs } from "@/lib/offlineSlm";
 import { MessageBubble, type Msg } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { Composer } from "./Composer";
@@ -75,6 +76,7 @@ export default function ChatWidget() {
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS[lang]);
   const [suggestions, setSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS[lang]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,14 +107,14 @@ export default function ChatWidget() {
         if (data?.lang === lang && Array.isArray(data.messages) && data.messages.length) {
           setMessages(data.messages);
           sessionId.current = data.sessionId ?? null;
-          setSuggestions([]);
+          setAiSuggestions([]);
           restored = true;
         }
       }
     } catch { /* ignore */ }
     if (!restored) {
       setMessages([{ id: uid(), role: "ai", content: TEXT[lang].welcome }]);
-      setSuggestions(INITIAL_SUGGESTIONS[lang]);
+      setAiSuggestions(INITIAL_SUGGESTIONS[lang]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -126,7 +128,7 @@ export default function ChatWidget() {
     setLoading(false);
     setStreaming(false);
     setMessages([{ id: uid(), role: "ai", content: TEXT[lang].welcome }]);
-    setSuggestions(INITIAL_SUGGESTIONS[lang]);
+    setAiSuggestions(INITIAL_SUGGESTIONS[lang]);
     try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ }
   }, [lang]);
 
@@ -173,6 +175,21 @@ export default function ChatWidget() {
     }
   }, []);
 
+  // ── Live Autocomplete/Suggestions as User Types ──
+  useEffect(() => {
+    const trimmed = input.trim();
+    if (trimmed.length >= 2) {
+      const matches = suggestBestFaqs(trimmed, pack.current, lang, 3);
+      if (matches.length > 0) {
+        setSuggestions(matches.map((m) => m.question));
+      } else {
+        setSuggestions([]);
+      }
+    } else {
+      setSuggestions(aiSuggestions);
+    }
+  }, [input, aiSuggestions, lang]);
+
 
 
   // ── Focus the composer when opening ──
@@ -213,19 +230,24 @@ export default function ChatWidget() {
 
       if (!isRegen) setMessages((prev) => [...prev, { id: uid(), role: "user", content: message }]);
       setInput("");
-      setSuggestions([]);
+      setAiSuggestions([]);
       setLoading(true);
       abort.current = false;
 
       // Offline → cached pack or offline message.
       if (!navigator.onLine) {
-        const local = localFaqAnswer(message, lang, pack.current);
+        const offlineMatches = suggestBestFaqs(message, pack.current, lang, 4);
+        const local = offlineMatches.length > 0 ? offlineMatches[0].answer : null;
+        const localSuggestions = offlineMatches.slice(1).map((m) => m.question);
         setMessages((prev) => [
           ...prev,
           local
-            ? { id: uid(), role: "ai", offline: true, content: `${t.offlineLocal}\n\n${local}` }
+            ? { id: uid(), role: "ai", offline: true, content: local }
             : { id: uid(), role: "ai", offline: true, content: t.offlineNone },
         ]);
+        if (local && localSuggestions.length > 0) {
+          setAiSuggestions(localSuggestions);
+        }
         reportOfflineAttempt();
         setLoading(false);
         return;
@@ -248,16 +270,21 @@ export default function ChatWidget() {
         setStreaming(true);
         await streamInto(id, answer);
         setStreaming(false);
-        if (res.suggestions?.length) setSuggestions(res.suggestions);
+        if (res.suggestions?.length) setAiSuggestions(res.suggestions);
       } catch {
         setLoading(false);
-        const local = localFaqAnswer(message, lang, pack.current);
+        const offlineMatches = suggestBestFaqs(message, pack.current, lang, 4);
+        const local = offlineMatches.length > 0 ? offlineMatches[0].answer : null;
+        const localSuggestions = offlineMatches.slice(1).map((m) => m.question);
         setMessages((prev) => [
           ...prev,
           local
-            ? { id: uid(), role: "ai", offline: true, content: `${t.offlineLocal}\n\n${local}` }
+            ? { id: uid(), role: "ai", offline: true, content: local }
             : { id: uid(), role: "ai", content: t.error },
         ]);
+        if (local && localSuggestions.length > 0) {
+          setAiSuggestions(localSuggestions);
+        }
       }
     },
     [input, loading, streaming, lang, t, streamInto],
@@ -306,7 +333,7 @@ export default function ChatWidget() {
     setStreaming(false);
     sessionId.current = null;
     setMessages([{ id: uid(), role: "ai", content: t.welcome }]);
-    setSuggestions(INITIAL_SUGGESTIONS[lang]);
+    setAiSuggestions(INITIAL_SUGGESTIONS[lang]);
     try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ }
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [lang, t.welcome]);
