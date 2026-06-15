@@ -6,24 +6,22 @@
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   /* Brand */
-  --color-primary: #064e3b;            /* deep forest green */
-  --color-primary-hover: #053e2f;
+  --color-primary: #072C21;            /* Deep forest green */
+  --color-primary-hover: #041B14;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #10b981;          /* emerald (interactive accent) */
-  --color-secondary-foreground: #022c22; /* deep green — never white on emerald */
-  --color-accent: #ecfdf5;             /* light emerald surface */
-  --color-accent-foreground: #064e3b;
-  --color-gold: #b7973c;               /* rare premium accent */
+  --color-secondary: #76C24A;          /* Vibrant lime/leaf green accent */
+  --color-secondary-foreground: #072C21;
+  --color-accent: #E2F4E5;             /* Very soft light green tint */
+  --color-accent-foreground: #072C21;
+  --color-gold: #c5a85c;
 
-  /* Organic / earthy accents (agriculture redesign) — harmonize with the
-     maroon+green brand logo. Clay/terracotta is the warm interactive accent
-     used sparingly against the forest-green primary and cream surfaces. */
-  --color-clay: #b5532e;               /* terracotta / fired-clay accent */
-  --color-clay-hover: #9a4526;
-  --color-clay-foreground: #fff7f2;
-  --color-soil: #5b3a2a;               /* deep earth brown — headings on cream */
-  --color-wheat: #e8c98a;              /* harvest gold-wheat highlight */
-  --color-leaf: #4d7c2f;               /* fresh foliage green (logo green) */
+  /* Organic / earthy accents (agriculture redesign) */
+  --color-clay: #76C24A;               /* Leaf green for buttons/primary actions */
+  --color-clay-hover: #62A73B;
+  --color-clay-foreground: #ffffff;
+  --color-soil: #072C21;               /* Deep forest green for text/titles */
+  --color-wheat: #76C24A;              /* Leaf green for badges/highlights */
+  --color-leaf: #76C24A;               /* Fresh foliage green */
 
   /* Semantic */
   --color-success: #16a34a;
@@ -31,22 +29,20 @@
   --color-error: #dc2626;
   --color-info: #0ea5e9;
 
-  /* Neutrals / surfaces — warmed toward cream/paper for the organic direction */
+  /* Neutrals / surfaces — updated to clean green-tinted grays & off-whites */
   --color-background: #ffffff;
-  --color-cream: #faf5ea;              /* warm paper background for sections */
-  --color-cream-2: #f3ebd9;            /* deeper cream band */
-  --color-surface: #fdfcf7;            /* warm off-white for cards */
-  --color-surface-2: #f5f4ef;          /* inset / input surface */
-  --color-border: #e7e0d3;             /* warm hairline */
-  --color-border-strong: #d8cfbd;
-  --color-foreground: #1c1917;         /* warm near-black (stone-900) */
-  --color-muted: #f5f4ef;
-  --color-muted-foreground: #6b6256;   /* warm grey */
+  --color-cream: #F4F6F4;              /* Soft gray-green background */
+  --color-cream-2: #EDF1ED;            /* Deeper gray-green background */
+  --color-surface: #ffffff;            /* Card surface (pure white) */
+  --color-surface-2: #F4F6F4;          /* Inset surface */
+  --color-border: #E2E6E2;             /* Subtle clean border */
+  --color-border-strong: #CBD5CB;
+  --color-foreground: #13251E;         /* Deep forest charcoal for body text */
+  --color-muted: #F4F6F4;
+  --color-muted-foreground: #4F6158;   /* Sage/slate green-gray */
 
-  /* Typography — characterful serif display paired with the existing sans.
-     Network-free: degrades gracefully to Georgia (a warm, universally-present
-     serif) so offline/restricted builds still render the intended tone. */
-  --font-display: "Fraunces", "Recoleta", "Hoefler Text", "Georgia", serif;
+  /* Typography — characterful sans DISPLAY paired with the existing body sans */
+  --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-heading: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -59,16 +55,16 @@
   --radius-2xl: 2rem;
 
   /* Elevation — tinted with brand green for cohesion */
-  --shadow-xs: 0 1px 2px 0 rgb(6 78 59 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(6 78 59 / 0.06), 0 1px 2px -1px rgb(6 78 59 / 0.06);
-  --shadow-md: 0 4px 12px -2px rgb(6 78 59 / 0.08), 0 2px 6px -2px rgb(6 78 59 / 0.06);
-  --shadow-lg: 0 12px 28px -6px rgb(6 78 59 / 0.12), 0 6px 12px -6px rgb(6 78 59 / 0.08);
-  --shadow-xl: 0 24px 48px -12px rgb(6 78 59 / 0.18);
+  --shadow-xs: 0 1px 2px 0 rgb(7 44 33 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(7 44 33 / 0.06), 0 1px 2px -1px rgb(7 44 33 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(7 44 33 / 0.08), 0 2px 6px -2px rgb(7 44 33 / 0.06);
+  --shadow-lg: 0 12px 28px -6px rgb(7 44 33 / 0.12), 0 6px 12px -6px rgb(7 44 33 / 0.08);
+  --shadow-xl: 0 24px 48px -12px rgb(7 44 33 / 0.18);
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #18181b;
+  --foreground: #13251E;
 
   /* Font stacks consumed by inline styles / next/font/local once .woff2 files
      are added to app/fonts (see docs/redesign/04-IMPLEMENTATION.md §3). Until
@@ -76,7 +72,7 @@
      build-time network font download. */
   --font-poppins: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-inter: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-playfair: "Fraunces", "Recoleta", "Georgia", serif; /* serif display */
+  --font-playfair: "Poppins", "Segoe UI", system-ui, sans-serif; /* sans display */
 }
 
 /* Dark palette — opt-in: add the `dark` class to <html> to activate. Shipped
