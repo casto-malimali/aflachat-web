@@ -10,6 +10,9 @@ import { LanguageProvider } from "@/components/LanguageContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aflachat.com"), // Placeholder URL, can be changed later
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "AflaChat | AI-Powered Aflatoxin Protection",
     template: "%s | AflaChat"
@@ -55,6 +58,37 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://aflachat.com/#organization",
+  "name": "AflaChat",
+  "url": "https://aflachat.com",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://aflachat.com/images/AflaChatLogo.png",
+    "width": 512,
+    "height": 512
+  },
+  "description": "AI-powered agricultural assistant protecting farmers and consumers from aflatoxin contamination."
+};
+
+const appSchema = {
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "@id": "https://aflachat.com/#application",
+  "name": "AflaChat",
+  "operatingSystem": "Android",
+  "applicationCategory": "BusinessApplication, HealthApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "installUrl": "https://play.google.com/store/apps/details?id=com.app01.aflachat&pcampaignid=web_share",
+  "description": "An AI-powered mobile application designed to protect farmers and consumers from Aflatoxin by providing instant agricultural guidance and food safety awareness."
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -63,6 +97,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className="antialiased font-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
+        />
         <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>

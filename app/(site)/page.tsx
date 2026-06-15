@@ -1,12 +1,27 @@
 "use client";
 
+import { useRef } from "react";
+import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import { useLanguage } from "@/components/LanguageContext";
 import PlayStoreButton from "@/components/PlayStoreButton";
 import { FeatureCard } from "@/components/ui/FeatureCard";
-import { Shield, Zap, MessageCircle, ArrowRight, CheckCircle2, Tractor, Sprout, GraduationCap, HeartPulse, Store } from "lucide-react";
+import FaqSection from "@/components/FaqSection";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/Motion";
+import {
+  Shield, Zap, MessageCircle, ArrowRight, CheckCircle2,
+  Tractor, Sprout, GraduationCap, HeartPulse, Store, Leaf,
+} from "lucide-react";
 
 export default function Home() {
   const { t } = useLanguage();
+  const reduce = useReducedMotion();
+
+  // Hero parallax: the photo drifts slower than the page for depth.
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const photoY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 140]);
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -40]);
+  const heroFade = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   const features = [
     { icon: <MessageCircle className="w-6 h-6" />, title: t.howItWorks.step1.title, desc: t.howItWorks.step1.desc, num: "01" },
@@ -24,137 +39,216 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      {/* ── Hero ── */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <img src="/images/2148761810.jpg" alt="Maize field" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-zinc-900/60" />
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative min-h-[94vh] flex items-center overflow-hidden">
+        {/* Parallax photo + layered earthy scrim */}
+        <motion.div style={{ y: photoY }} className="absolute inset-0 -z-20 h-[118%]">
+          <img
+            src="/images/2148761810.jpg"
+            alt=""
+            aria-hidden
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
+        <div className="absolute inset-0 -z-10 hero-scrim" />
+        {/* Ambient drifting leaf orbs (decorative) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="animate-drift absolute -left-24 top-24 h-72 w-72 rounded-full bg-[var(--color-leaf)]/20 blur-3xl" />
+          <div className="animate-drift absolute right-[-6rem] bottom-10 h-80 w-80 rounded-full bg-[var(--color-wheat)]/15 blur-3xl" style={{ animationDelay: "2.5s" }} />
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-24 w-full">
-          <div className="max-w-2xl animate-fade-up">
-            <span className="eyebrow mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-              {t.hero.welcome}
-            </span>
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
-              {t.hero.headline}
-            </h1>
-            <p className="text-lg text-zinc-300 mb-10 leading-relaxed max-w-xl">{t.hero.description}</p>
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <PlayStoreButton />
-              <a href="#how" className="flex items-center gap-2 text-white font-semibold hover:text-secondary transition-colors group mt-1">
-                {t.hero.learnHow}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
-            </div>
-            {/* Mobile/tablet proof row — desktop uses the floating stat cards instead */}
-            <dl className="mt-10 grid grid-cols-3 gap-4 lg:hidden">
+
+        <motion.div style={{ y: contentY, opacity: heroFade }} className="max-w-7xl mx-auto px-6 py-28 w-full">
+          <Stagger className="max-w-2xl">
+            <StaggerItem>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[var(--color-wheat)] backdrop-blur-sm">
+                <Leaf className="h-3.5 w-3.5" />
+                {t.hero.welcome}
+              </span>
+            </StaggerItem>
+            <StaggerItem>
+              <h1 className="display mt-7 text-balance text-white text-5xl leading-[1.03] sm:text-6xl md:text-7xl">
+                {t.hero.headline}
+              </h1>
+            </StaggerItem>
+            <StaggerItem>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-100/90">
+                {t.hero.description}
+              </p>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                <PlayStoreButton />
+                <a
+                  href="#how"
+                  className="group inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-3 font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  {t.hero.learnHow}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </a>
+              </div>
+            </StaggerItem>
+
+            {/* Mobile/tablet proof row */}
+            <dl className="mt-12 grid grid-cols-3 gap-3 lg:hidden">
               {stats.map((s, i) => (
-                <div key={i} className="rounded-xl border border-white/15 bg-white/5 px-3 py-3 text-center backdrop-blur-sm">
-                  <dt className="font-heading text-xl font-bold text-white">{s.val}</dt>
-                  <dd className="mt-1 text-xs text-zinc-300">{s.label}</dd>
+                <div key={i} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-center backdrop-blur-sm">
+                  <dt className="font-display text-xl font-semibold text-white">{s.val}</dt>
+                  <dd className="mt-1 text-xs text-zinc-200">{s.label}</dd>
                 </div>
               ))}
             </dl>
-          </div>
-        </div>
-        {/* Stat cards (desktop) */}
-        <div className="hidden lg:flex absolute right-12 top-1/2 -translate-y-1/2 flex-col gap-4">
+          </Stagger>
+        </motion.div>
+
+        {/* Floating stat cards (desktop) */}
+        <Stagger className="absolute right-12 top-1/2 hidden -translate-y-1/2 flex-col gap-4 lg:flex">
           {stats.map((s, i) => (
-            <div key={i} className="bg-surface px-6 py-4 rounded-2xl shadow-xl border border-border animate-fade-up" style={{ animationDelay: `${300 + i * 150}ms` }}>
-              <p className="font-heading text-3xl font-bold text-primary">{s.val}</p>
-              <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
-            </div>
+            <StaggerItem key={i}>
+              <motion.div
+                whileHover={reduce ? undefined : { y: -4, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 px-6 py-4 shadow-xl backdrop-blur"
+              >
+                <p className="font-display text-3xl font-semibold text-[var(--color-primary)]">{s.val}</p>
+                <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{s.label}</p>
+              </motion.div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
+
+        {/* Bottom fade into paper section */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[var(--color-cream)]" />
       </section>
 
-      {/* ── How It Works ── */}
-      <section id="how" className="scroll-mt-24 py-28 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16">
-            <div className="rule-accent mb-4" />
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+      {/* ── How It Works ───────────────────────────────────────────────────── */}
+      <section id="how" className="texture-grain bg-paper scroll-mt-24 px-6 py-28">
+        <div className="mx-auto max-w-7xl">
+          <Reveal className="mb-16 max-w-2xl">
+            <div className="rule-accent mb-5" />
+            <h2 className="display text-4xl text-[var(--color-soil)] md:text-5xl">
               {t.howItWorks.title}
             </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          </Reveal>
+          <Stagger className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {features.map((f, i) => (
-              <FeatureCard key={i} icon={f.icon} title={f.title} desc={f.desc} num={f.num} />
+              <StaggerItem key={i}>
+                <motion.div
+                  whileHover={reduce ? undefined : { y: -6 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                  className="h-full"
+                >
+                  <FeatureCard icon={f.icon} title={f.title} desc={f.desc} num={f.num} className="h-full" />
+                </motion.div>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       </section>
 
-      {/* ── Quote Banner ── */}
-      <section className="relative h-80 overflow-hidden">
-        <img src="/images/2149142834.jpg" alt="Farmers in field" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-primary/60 flex items-center justify-center">
-          <div className="text-center text-white px-6">
-            <p className="font-heading text-3xl md:text-4xl font-bold mb-4">{t.quote.text}</p>
-            <p className="text-emerald-200 text-sm tracking-widest uppercase">— {t.quote.author}</p>
-          </div>
+      {/* ── Quote Banner ───────────────────────────────────────────────────── */}
+      <section className="relative h-96 overflow-hidden">
+        <motion.img
+          src="/images/2149142834.jpg"
+          alt=""
+          aria-hidden
+          initial={reduce ? undefined : { scale: 1.12 }}
+          whileInView={reduce ? undefined : { scale: 1 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 1.4, ease: "easeOut" }}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-primary)]/75">
+          <Reveal className="px-6 text-center">
+            <Leaf className="mx-auto mb-5 h-8 w-8 text-[var(--color-wheat)]" />
+            <p className="display mx-auto max-w-3xl text-3xl text-white md:text-4xl">{t.quote.text}</p>
+            <p className="mt-4 text-sm uppercase tracking-[0.25em] text-emerald-200">— {t.quote.author}</p>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── Benefits ── */}
-      <section className="py-28 px-6 bg-zinc-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div>
-              <div className="rule-accent mb-4 bg-secondary" />
-              <h2 className="text-4xl md:text-5xl font-bold mb-10 text-foreground">
+      {/* ── Benefits ───────────────────────────────────────────────────────── */}
+      <section className="texture-grain bg-paper-2 px-6 py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-20">
+            <Reveal>
+              <div className="rule-accent mb-5 bg-[var(--color-clay)]" />
+              <h2 className="display mb-10 text-4xl text-[var(--color-soil)] md:text-5xl">
                 {t.benefits.title}
               </h2>
-              <div className="space-y-5">
+              <Stagger className="space-y-4">
                 {benefits.map((b, i) => (
-                  <div key={i} className="flex items-start gap-4 group">
-                    <div className="mt-1 w-6 h-6 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <StaggerItem key={i}>
+                    <div className="group flex items-start gap-4 rounded-2xl border border-transparent p-3 transition-colors hover:border-[var(--color-border)] hover:bg-white/60">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/20 transition-colors group-hover:bg-[var(--color-primary)] group-hover:ring-[var(--color-primary)]">
+                        <CheckCircle2 className="h-4 w-4 text-[var(--color-primary)] transition-colors group-hover:text-white" />
+                      </span>
+                      <p className="font-medium leading-relaxed text-[var(--color-foreground)]/85">{b}</p>
                     </div>
-                    <p className="text-zinc-700 leading-relaxed font-medium">{b}</p>
-                  </div>
+                  </StaggerItem>
                 ))}
+              </Stagger>
+            </Reveal>
+
+            <Reveal delay={0.1}>
+              <div className="relative">
+                <motion.div
+                  whileHover={reduce ? undefined : { y: -6 }}
+                  transition={{ type: "spring", stiffness: 250, damping: 22 }}
+                  className="relative overflow-hidden rounded-[2rem] shadow-2xl"
+                >
+                  <img src="/images/41468.jpg" alt="Farmer using the AflaChat app on a mobile phone" className="h-[26rem] w-full object-cover" />
+                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-[var(--color-soil)]/90 via-[var(--color-soil)]/30 to-transparent p-8">
+                    <h3 className="font-display text-2xl font-semibold text-white">{t.benefits.cta}</h3>
+                    <p className="mb-6 mt-2 text-sm text-emerald-50/90">{t.benefits.ctaDesc}</p>
+                    <PlayStoreButton />
+                  </div>
+                </motion.div>
+                {/* offset earthy shadow plate */}
+                <div aria-hidden className="absolute -bottom-4 -right-4 -z-10 h-full w-full rounded-[2rem] bg-[var(--color-clay)]/10 ring-1 ring-[var(--color-clay)]/15" />
               </div>
-            </div>
-            <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                <img src="/images/41468.jpg" alt="Farmer with mobile phone" className="w-full h-96 object-cover" />
-                <div className="absolute inset-0 bg-zinc-900/60 flex flex-col justify-end p-8">
-                  <h3 className="text-2xl font-bold text-white mb-3">{t.benefits.cta}</h3>
-                  <p className="text-emerald-100 mb-6 text-sm">{t.benefits.ctaDesc}</p>
-                  <PlayStoreButton />
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 -z-10 w-full h-full rounded-3xl bg-primary/10 border border-primary/10" />
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ── Trust Bar ── */}
-      <section className="py-20 px-6 bg-zinc-50 border-t border-zinc-100">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-10">{t.trustBar.label}</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+      {/* ── FAQ ────────────────────────────────────────────────────────────── */}
+      <FaqSection />
+
+      {/* ── Trust / sectors ────────────────────────────────────────────────── */}
+      <section className="texture-grain bg-paper px-6 py-24">
+        <div className="mx-auto max-w-7xl text-center">
+          <Reveal>
+            <p className="mb-12 text-sm font-bold uppercase tracking-[0.2em] text-[var(--color-muted-foreground)]">
+              {t.trustBar.label}
+            </p>
+          </Reveal>
+          <Stagger className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-5">
             {t.trustBar.items.map((item, i) => {
               const icons = [
-                <Tractor key="agri" className="w-8 h-8" />,
-                <Sprout key="farm" className="w-8 h-8" />,
-                <GraduationCap key="edu" className="w-8 h-8" />,
-                <HeartPulse key="health" className="w-8 h-8" />,
-                <Store key="trade" className="w-8 h-8" />
+                <Tractor key="agri" className="h-7 w-7" />,
+                <Sprout key="farm" className="h-7 w-7" />,
+                <GraduationCap key="edu" className="h-7 w-7" />,
+                <HeartPulse key="health" className="h-7 w-7" />,
+                <Store key="trade" className="h-7 w-7" />,
               ];
               return (
-                <div key={i} className="flex flex-col items-center justify-center gap-4 bg-white p-8 rounded-[2rem] shadow-sm border border-zinc-100 group hover:shadow-xl hover:-translate-y-2 hover:border-primary/30 transition-all duration-300">
-                  <div className="p-4 bg-accent text-primary rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                    {icons[i]}
-                  </div>
-                  <span className="text-zinc-800 font-bold text-lg tracking-tight text-center leading-tight">{item}</span>
-                </div>
+                <StaggerItem key={i}>
+                  <motion.div
+                    whileHover={reduce ? undefined : { y: -6 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="flex h-full flex-col items-center justify-center gap-4 rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-7 shadow-sm transition-colors hover:border-[var(--color-primary)]/30"
+                  >
+                    <span className="rounded-2xl bg-[var(--color-accent)] p-4 text-[var(--color-primary)]">
+                      {icons[i]}
+                    </span>
+                    <span className="text-center text-base font-bold leading-tight tracking-tight text-[var(--color-soil)]">
+                      {item}
+                    </span>
+                  </motion.div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </Stagger>
         </div>
       </section>
     </div>

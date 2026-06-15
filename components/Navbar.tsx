@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useLanguage } from "./LanguageContext";
 import { Menu, X, Globe, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
@@ -57,41 +59,70 @@ export default function Navbar() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <nav
+    <motion.nav
       aria-label="Primary"
+      initial={{ y: reduce ? 0 : -100, opacity: reduce ? 1 : 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/90 backdrop-blur-lg shadow-sm border-b border-zinc-100 py-3"
-          : "bg-transparent py-5"
+          ? "bg-[var(--color-cream)]/90 backdrop-blur-lg shadow-sm border-b border-[var(--color-border)] py-2.5"
+          : "bg-transparent py-4"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <img
-            src="/images/AflaChatLogo.png"
-            alt="AflaChat logo"
-            className="w-9 h-9 object-contain group-hover:scale-105 transition-transform rounded-lg"
-          />
-          <span className="font-heading font-bold text-xl tracking-tight text-zinc-900">
-            Afla<span className="text-primary">Chat</span>
+        {/* Brand — full lockup (icon + wordmark). A contrast plate appears while
+            the bar is transparent over the dark hero so the maroon wordmark
+            always reads; once scrolled onto the cream bar the plate fades out. */}
+        <Link href="/" aria-label="AflaChat — home" className="group inline-flex shrink-0">
+          <span
+            className={`inline-flex items-center rounded-xl transition-all duration-300 ${
+              isScrolled
+                ? "bg-transparent px-0 py-0 shadow-none ring-0"
+                : "bg-white/95 px-3 py-1.5 shadow-md ring-1 ring-black/5 backdrop-blur"
+            }`}
+          >
+            <img
+              src="/images/aflachat-logo-trimmed.png"
+              alt="AflaChat"
+              width={138}
+              height={50}
+              className="h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03] md:h-10"
+            />
           </span>
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              aria-current={isActive(link.href) ? "page" : undefined}
-              className={`text-sm font-medium tracking-wide transition-colors ${
-                isActive(link.href) ? "text-primary" : "text-zinc-600 hover:text-primary"
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            // Over the dark hero (transparent bar) links must be light; on the
+            // cream scrolled bar they switch to dark. Active = clay accent.
+            const linkColor = active
+              ? isScrolled
+                ? "text-[var(--color-clay)]"
+                : "text-[var(--color-wheat)]"
+              : isScrolled
+                ? "text-[var(--color-soil)] hover:text-[var(--color-clay)]"
+                : "text-white/85 hover:text-white";
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`relative text-sm font-semibold tracking-wide transition-colors ${linkColor}`}
+              >
+                {link.name}
+                {active && (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-current"
+                    transition={{ type: "spring", stiffness: 500, damping: 32 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
 
           {/* Language Selector */}
           <div className="relative" ref={langRef}>
@@ -100,7 +131,11 @@ export default function Navbar() {
               aria-haspopup="menu"
               aria-expanded={isLangOpen}
               aria-label={`Language: ${language === "en" ? "English" : "Swahili"}`}
-              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-zinc-200 hover:border-primary/40 hover:bg-accent transition-all"
+              className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${
+                isScrolled
+                  ? "border-[var(--color-border-strong)] text-[var(--color-soil)] hover:border-[var(--color-clay)]/50 hover:bg-[var(--color-clay)]/5"
+                  : "border-white/30 text-white hover:border-white/60 hover:bg-white/10"
+              }`}
             >
               <Globe className="w-3.5 h-3.5" aria-hidden />
               {language === "en" ? (
@@ -136,7 +171,7 @@ export default function Navbar() {
 
           <Link
             href="/download"
-            className="px-5 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-secondary transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:-translate-y-0.5"
+            className="px-5 py-2 bg-[var(--color-clay)] text-[var(--color-clay-foreground)] text-sm font-semibold rounded-full hover:bg-[var(--color-clay-hover)] transition-all shadow-md shadow-[var(--color-clay)]/25 hover:shadow-lg hover:-translate-y-0.5"
           >
             {t.nav.download}
           </Link>
@@ -144,7 +179,11 @@ export default function Navbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-zinc-100 transition-colors"
+          className={`md:hidden p-2 rounded-lg transition-colors ${
+            isScrolled
+              ? "text-[var(--color-soil)] hover:bg-black/5"
+              : "text-white hover:bg-white/10"
+          }`}
           onClick={() => setIsMenuOpen((o) => !o)}
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}
@@ -155,8 +194,15 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
+      <AnimatePresence>
       {isMenuOpen && (
-        <div id="mobile-menu" className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-zinc-100 p-6 flex flex-col gap-5 shadow-2xl">
+        <motion.div
+          id="mobile-menu"
+          initial={{ opacity: 0, y: reduce ? 0 : -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: reduce ? 0 : -12 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="md:hidden absolute top-full left-0 right-0 bg-[var(--color-cream)] border-t border-[var(--color-border)] p-6 flex flex-col gap-5 shadow-2xl">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -190,13 +236,14 @@ export default function Navbar() {
 
           <Link
             href="/download"
-            className="w-full py-3 bg-primary text-white text-center font-bold rounded-xl hover:bg-secondary transition-colors"
+            className="w-full py-3 bg-[var(--color-clay)] text-[var(--color-clay-foreground)] text-center font-bold rounded-full hover:bg-[var(--color-clay-hover)] transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             {t.nav.download}
           </Link>
-        </div>
+        </motion.div>
       )}
-    </nav>
+      </AnimatePresence>
+    </motion.nav>
   );
 }

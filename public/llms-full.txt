@@ -1,0 +1,109 @@
+# AflaChat - Full Documentation & Reference Context
+
+This document contains the complete context, feature details, FAQs, and policies for AflaChat, an AI-powered aflatoxin protection and agricultural food safety application.
+
+---
+
+## 1. About AflaChat
+
+AflaChat is a specialized mobile application designed to protect farmers, crop traders, agricultural extension workers, and consumers from the dangers of aflatoxin contamination. It offers an interactive AI chat interface capable of conversing in both English and Swahili to provide localized, science-based guidance on food safety and agronomy.
+
+### Key Capabilities
+- **Bilingual AI Support**: Chat in English or Swahili for instant, context-aware advice.
+- **Evidence-Based Answers**: Answers are backed by research from the World Health Organization (WHO), the Food and Agriculture Organization (FAO), and the International Institute of Tropical Agriculture (IITA).
+- **Offline Mode**: Access pre-loaded instructions and basic mitigation checklists even in areas with low or no internet access.
+- **Completely Free**: Free to download and use with no hidden fees or subscriptions.
+
+---
+
+## 2. core services
+
+AflaChat provides several core services to aid agricultural practices and protect public health:
+
+- **AI-Powered Aflatoxin Information**: Instant access to research and recommendations regarding food safety and chemical safety.
+- **Food Safety Awareness**: Educational materials focused on identifying crop molding, discoloration, and contamination in staple grains like maize and groundnuts.
+- **Agricultural Guidance**: Practical protocols for pre-harvest, harvest, and post-harvest management (e.g., drying to under 13.5% moisture, preventing contact with bare ground, using hermetic storage bags).
+- **Farmer Education Tools**: Features tailored to help lead farmers and extension officers educate their local communities.
+
+---
+
+## 3. Frequently Asked Questions (FAQs)
+
+### English FAQ
+
+#### What is aflatoxin and why is it dangerous?
+Aflatoxin is a highly toxic chemical compound produced by specific molds (primarily *Aspergillus flavus*) that grow on crops such as maize, groundnuts, and cassava under hot, humid conditions. Consuming contaminated foods can lead to liver cancer, acute poisoning (aflatoxiosis), childhood stunting, and a weakened immune system. (Source: WHO)
+
+#### How does the AflaChat AI assistant help?
+AflaChat functions as a 24/7 bilingual agricultural advisor. Users can ask questions about recognizing contaminated crops, optimal harvesting periods, appropriate drying practices, and how to store grains. It provides instant, research-backed guidelines in both English and Swahili.
+
+#### What are the best agricultural practices to prevent aflatoxin?
+To minimize aflatoxin risks, farmers should:
+1. Dry crops immediately after harvest to a safe moisture level (under 13.5% for maize).
+2. Avoid placing harvested crops directly onto bare soil; use clean tarpaulins.
+3. Carefully sort and discard discolored, shriveled, or moldy grains.
+4. Use clean, aerated storage rooms or hermetic (airtight) storage bags to prevent moisture re-absorption.
+
+#### How can I download the AflaChat app?
+AflaChat is available for free download on the Google Play Store for Android smartphones running Android OS version 8.0 or higher. Search for "AflaChat" in the Play Store or click the download links on our website.
+
+#### Does AflaChat work without an internet connection?
+Yes, basic guidelines, crop protection instructions, and educational resources are accessible offline within the app. However, real-time interactive chat with the AI assistant requires an active internet connection.
+
+### Swahili FAQ (Maswali Yanayoulizwa Mara kwa Mara)
+
+#### Sumu kuvu (Aflatoxin) ni nini na kwa nini ni hatari?
+Sumu kuvu ni sumu kali inayozalishwa na kuvu fulani (hasa *Aspergillus flavus*) inayoota kwenye mazao kama mahindi, karanga, na muhogo katika hali ya joto na unyevu. Kula chakula kilichochafuliwa kunaweza kusababisha saratani ya ini, sumu kali mwilini, kudumaa kwa watoto, na kudhoofisha kinga ya mwili. (Chanzo: WHO)
+
+#### Msaidizi wa AI wa AflaChat anasaidia vipi?
+AflaChat inafanya kazi kama mshauri wa lugha mbili (Kiingereza na Kiswahili) saa 24/7. Unaweza kuiuliza maswali kuhusu jinsi ya kutambua kuvu, nyakati bora za kuvuna, mbinu sahihi za kukausha, na jinsi ya kuhifadhi nafaka. Inatumia utafiti wa kilimo wa kisayansi kukupa miongozo ya haraka.
+
+#### Ni mbinu gani bora za kilimo za kuzuia sumu kuvu?
+Ili kuzuia sumu kuvu, wakulima wanapaswa:
+1. Kukausha mazao haraka hadi kiwango salama cha unyevu (chini ya 13.5% kwa mahindi).
+2. Kuepuka kuacha mazao yaliyovunwa kwenye udongo wazi; tumia turubai safi.
+3. Kupanga na kuondoa nafaka zilizobadilika rangi, zilizosinyaa, au zenye kuvu.
+4. Kutumia mifuko safi inayopitisha hewa, au mifuko ya hermetic (isiyopitisha hewa).
+
+#### Ninawezaje kupakua programu ya simu ya AflaChat?
+Unaweza kupakua AflaChat bure kutoka Google Play Store kwenye kifaa chochote kinachotumia Android 8.0 au zaidi. Tafuta tu "AflaChat" au bonyeza viungo vya kupakua kwenye tovuti hii.
+
+#### Je, AflaChat inafanya kazi bila mtandao wa internet?
+Programu inafanya kazi bila mtandao (offline) kwa miongozo ya kimsingi ya kuzuia na rasilimali zilizohifadhiwa, lakini unahitaji mtandao wa internet ili kutumia huduma ya mazungumzo ya papo hapo ya AI.
+
+---
+
+## 4. Download & Installation Instructions
+
+The application is hosted on the Google Play Store:
+- **Play Store Link**: `https://play.google.com/store/apps/details?id=com.app01.aflachat`
+- **Device Requirements**: Android OS 8.0 (Oreo) or higher.
+- **File Size**: Varies by device (optimized for minimal data consumption).
+
+### Step-by-Step Installation:
+1. Open the **Google Play Store** app on your Android device.
+2. Search for **"AflaChat"** in the search bar.
+3. Tap **Install** to download and install the app.
+4. Open the app, select your preferred language (English or Swahili), and start chatting.
+
+---
+
+## 5. Contact Information
+
+For support, collaborations, or inquiries, reach out to the AflaChat team:
+- **Email Support**: `pamsekela@gmail.com`
+- **Primary Location**: Arusha, Tanzania.
+- **Supported Languages**: English and Swahili.
+
+---
+
+## 6. Privacy Policy & Terms Summary
+
+### Privacy Policy Summary
+- **Information Collection**: AflaChat collects limited technical parameters (device type, operating system version, app usage statistics, error logs) to maintain app stability. Users can optionally share queries with the AI chat system, which are processed to generate answers.
+- **Data Sharing**: AflaChat does not sell user information or use personal data for third-party commercial marketing.
+- **AI Disclaimer**: Answers provided by AflaChat's AI are for educational and informational purposes. They do not replace formal laboratory testing, veterinary guidance, or medical services.
+
+### Terms & Conditions Summary
+- **Usage Scope**: Users are permitted to use the app for personal, educational, and agricultural planning.
+- **Content Accuracy**: While we strive to source guidelines from reputable scientific bodies (WHO, FAO, IITA), AI-generated advice is subject to probabilistic errors. Users should verify critical contamination status using standard moisture testing or laboratory methods before trading or consuming high-risk grains.

@@ -11,15 +11,20 @@ export default function Footer() {
 
   return (
     <footer className="bg-zinc-950 text-white mt-0">
-      <div className="h-1 bg-primary" />
+      <div className="h-1 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-leaf)] to-[var(--color-clay)]" />
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-5">
-              <img src="/images/AflaChatLogo.png" alt="AflaChat logo" className="w-9 h-9 object-contain rounded-lg" />
-              <span className="font-heading font-bold text-xl tracking-tight">
-                Afla<span className="text-secondary">Chat</span>
+            <Link href="/" aria-label="AflaChat — home" className="mb-5 inline-flex">
+              <span className="inline-flex items-center rounded-xl bg-[var(--color-cream)] px-3.5 py-2 shadow-sm ring-1 ring-white/10">
+                <img
+                  src="/images/aflachat-logo-trimmed.png"
+                  alt="AflaChat"
+                  width={138}
+                  height={50}
+                  className="h-9 w-auto object-contain"
+                />
               </span>
             </Link>
             <p className="text-zinc-400 leading-relaxed text-sm max-w-sm mb-8">{t.hero.description}</p>

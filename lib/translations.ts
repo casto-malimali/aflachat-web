@@ -122,6 +122,32 @@ export const translations = {
       title: "Terms & Conditions",
       lastUpdated: "Last Updated: March 2026",
     },
+    faq: {
+      title: "Frequently Asked Questions",
+      subtitle: "Find quick answers to common questions about aflatoxins, food safety, and the AflaChat AI assistant.",
+      items: [
+        {
+          q: "What is aflatoxin and why is it dangerous?",
+          a: "Aflatoxin is a toxic byproduct produced by specific molds (primarily *Aspergillus flavus*) that grow on crops like maize, groundnuts, and cassava under hot, humid conditions. Consuming contaminated food can lead to liver cancer, acute poisoning, stunted growth in children, and a weakened immune system. (Source: World Health Organization - WHO)"
+        },
+        {
+          q: "How does the AflaChat AI assistant help?",
+          a: "AflaChat acts as a 24/7 bilingual (English and Swahili) advisor. Users can ask questions about how to identify mold, optimal harvesting times, correct drying practices, and proper grain storage. It leverages science-backed agricultural research to deliver instant, actionable guidance."
+        },
+        {
+          q: "What are the best agricultural practices to prevent aflatoxin?",
+          a: "To prevent contamination, farmers should: 1. Dry crops immediately to a safe moisture level (under 13.5% for maize). 2. Avoid leaving harvested crops directly on bare soil. 3. Sort out discolored, shriveled, or moldy grains. 4. Use clean, aerated, or hermetic storage bags. (Source: Food and Agriculture Organization - FAO / IITA)"
+        },
+        {
+          q: "How can I download the AflaChat mobile app?",
+          a: "You can download the official AflaChat app for free from the Google Play Store. It is designed for Android devices running OS version 8.0 or higher. Simply search for 'AflaChat' or click the download links on this site."
+        },
+        {
+          q: "Does AflaChat work without an internet connection?",
+          a: "The app works offline for browsing basic prevention guidelines and stored safety resources. However, an active internet connection is required to interact with the real-time AI chat assistant."
+        }
+      ]
+    },
   },
 
   sw: {
@@ -246,6 +272,32 @@ export const translations = {
     terms: {
       title: "Vigezo na Masharti",
       lastUpdated: "Ilisasishwa Mwisho: Machi 2026",
+    },
+    faq: {
+      title: "Maswali Yanayoulizwa Mara kwa Mara",
+      subtitle: "Pata majibu ya haraka kwa maswali ya kawaida kuhusu sumu kuvu, usalama wa chakula, na msaidizi wa AI wa AflaChat.",
+      items: [
+        {
+          q: "Sumu kuvu (Aflatoxin) ni nini na kwa nini ni hatari?",
+          a: "Sumu kuvu (Aflatoxin) ni sumu kali inayozalishwa na kuvu fulani (hasa *Aspergillus flavus*) inayoota kwenye mazao kama mahindi, karanga, na muhogo katika hali ya joto na unyevu. Kula chakula kilichochafuliwa kunaweza kusababisha saratani ya ini, sumu kali mwilini, kudumaa kwa watoto, na kudhoofisha kinga ya mwili. (Chanzo: Shirika la Afya Duniani - WHO)"
+        },
+        {
+          q: "Msaidizi wa AI wa AflaChat anasaidia vipi?",
+          a: "AflaChat inafanya kazi kama mshauri wa lugha mbili (Kiingereza na Kiswahili) saa 24/7. Unaweza kuiuliza maswali kuhusu jinsi ya kutambua kuvu, nyakati bora za kuvuna, mbinu sahihi za kukausha, na jinsi ya kuhifadhi nafaka. Inatumia utafiti wa kilimo wa kisayansi kukupa miongozo ya haraka."
+        },
+        {
+          q: "Ni mbinu gani bora za kilimo za kuzuia sumu kuvu?",
+          a: "Ili kuzuia sumu kuvu, wakulima wanapaswa: 1. Kukausha mazao haraka hadi kiwango salama cha unyevu (chini ya 13.5% kwa mahindi). 2. Kuepuka kuacha mazao yaliyovunwa kwenye udongo wazi. 3. Kupanga na kuondoa nafaka zilizobadilika rangi, zilizosinyaa, au zenye kuvu. 4. Kutumia mifuko safi, inayopitisha hewa, au mifuko ya hermetic (isiyopitisha hewa). (Chanzo: FAO / IITA)"
+        },
+        {
+          q: "Ninawezaje kupakua programu ya simu ya AflaChat?",
+          a: "Unaweza kupakua AflaChat bure kutoka Google Play Store kwenye kifaa chochote kinachotumia Android 8.0 au zaidi. Tafuta tu 'AflaChat' au bonyeza viungo vya kupakua kwenye tovuti hii."
+        },
+        {
+          q: "Je, AflaChat inafanya kazi bila mtandao wa internet?",
+          a: "Programu inafanya kazi bila mtandao (offline) kwa miongozo ya kimsingi ya kuzuia na rasilimali zilizohifadhiwa, lakini unahitaji mtandao wa internet ili kutumia huduma ya mazungumzo ya papo hapo ya AI."
+        }
+      ]
     },
   },
 };

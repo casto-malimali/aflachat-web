@@ -1,0 +1,26 @@
+# AflaChat
+
+> AI-Powered Aflatoxin Protection and Food Safety Assistant
+
+AflaChat is an AI-powered conversational assistant designed to protect farmers, traders, and consumers from Aflatoxin contamination and promote agricultural food safety. Available in both English and Swahili, the application provides real-time, science-based guidance on crop handling, harvesting, drying, and storage.
+
+## Information
+
+- **Goal**: Combat aflatoxin contamination, protect public health, and secure agricultural livelihoods.
+- **Audience**: Smallholder farmers, crop traders, processors, consumers, and agricultural extension officers.
+- **Availability**: Free Android application on the Google Play Store (compatible with Android 8.0+).
+- **Core Capabilities**:
+  - Direct Q&A in English and Swahili.
+  - Practical crop storage techniques (e.g. hermetic bags, proper ventilation).
+  - Crop drying thresholds (below 13.5% moisture for maize).
+  - Scientific advisory backed by data from WHO, FAO, IITA, and regional research institutes.
+  - Offline access to fundamental safety guidelines.
+
+## Document Index
+
+- [Services](/services): Summary of AI information tools, agricultural guidance, and education modules.
+- [Download](/download): Download instructions and specifications for the Android mobile application.
+- [Contact](/contact): Details for contacting the support team, localization services, and physical address in Arusha, Tanzania.
+- [Privacy Policy](/privacy): Data privacy policies, user rights, and protection practices.
+- [Terms & Conditions](/terms): Terms of service and guidelines for using the AflaChat platform.
+- [Full Context Document](/llms-full.txt): Complete site text, FAQ sheets, and detailed instructions for offline/online parsing by generative models.
