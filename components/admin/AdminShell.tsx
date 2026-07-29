@@ -21,9 +21,12 @@ import {
   Lock,
   ArrowRight,
   Leaf,
+  MessagesSquare,
+  MailPlus,
 } from "lucide-react";
 import { api, type Overview } from "@/lib/adminApi";
 import { useAuth } from "@/components/admin/AuthContext";
+import { useLiveStatus } from "@/components/admin/LiveContext";
 import type { AdminUser } from "@/lib/authApi";
 
 type NavItem = {
@@ -37,6 +40,8 @@ type NavItem = {
 const MAIN_NAV: NavItem[] = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, description: "Analytics & KPIs" },
   { href: "/admin/logs", label: "Logs", icon: ScrollText, description: "Sessions & activity" },
+  { href: "/admin/feedback", label: "Feedback", icon: MessagesSquare, description: "Community feedback" },
+  { href: "/admin/contact", label: "Contact", icon: MailPlus, description: "Form submissions" },
   { href: "/admin/users", label: "Users", icon: Users, description: "Manage accounts", adminOnly: true },
 ];
 
@@ -160,11 +165,10 @@ function NavSection({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
             href={href}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
-            className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-              active
-                ? "bg-emerald-500/15 text-white shadow-sm"
-                : "text-emerald-50/70 hover:bg-white/5 hover:text-white"
-            }`}
+            className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${active
+              ? "bg-emerald-500/15 text-white shadow-sm"
+              : "text-emerald-50/70 hover:bg-white/5 hover:text-white"
+              }`}
           >
             {active && (
               <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-emerald-400" aria-hidden />
@@ -232,9 +236,13 @@ function DesktopSidebar({ user }: { user: AdminUser }) {
   const logout = useLogout();
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/5 ${SIDEBAR_BG} md:flex`}
+      className={`fixed inset-y-0 left-0 z-30 hidden w-64 flex-col overflow-hidden border-r border-white/5 ${SIDEBAR_BG} md:flex`}
     >
-      <div className="px-5 py-5">
+      <span
+        className="pointer-events-none absolute -left-10 -top-16 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl"
+        aria-hidden
+      />
+      <div className="relative px-5 py-5">
         <Brand />
       </div>
       <NavLinks user={user} />
@@ -257,15 +265,13 @@ function MobileDrawer({
     <div className={`md:hidden ${open ? "" : "pointer-events-none"}`}>
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"
+          }`}
         aria-hidden
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col ${SIDEBAR_BG} shadow-2xl transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col ${SIDEBAR_BG} shadow-2xl transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
@@ -309,10 +315,27 @@ function Topbar({ user, onMenu }: { user: AdminUser; onMenu: () => void }) {
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+        <LiveIndicator />
         <Notifications />
         <ProfileMenu user={user} />
       </div>
     </header>
+  );
+}
+
+/** Small status pill for the GET /api/analytics/stream connection (see LiveContext). */
+function LiveIndicator() {
+  const status = useLiveStatus();
+  const dot = status === "open" ? "bg-emerald-500" : status === "connecting" ? "bg-amber-400" : "bg-slate-300";
+  const label = status === "open" ? "Live" : status === "connecting" ? "Connecting…" : "Offline";
+  return (
+    <span
+      className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 sm:flex"
+      title={status === "open" ? "Live updates connected" : status === "connecting" ? "Connecting to live updates…" : "Live updates unavailable — falling back to manual refresh"}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dot} ${status === "open" ? "animate-pulse" : ""}`} aria-hidden />
+      {label}
+    </span>
   );
 }
 
@@ -326,7 +349,7 @@ function Notifications() {
     api
       .overview()
       .then((o) => active && setData(o))
-      .catch(() => {});
+      .catch(() => { });
     return () => {
       active = false;
     };
@@ -334,10 +357,10 @@ function Notifications() {
 
   const items = data
     ? [
-        { label: "Unanswered queries", value: data.unanswered, href: "/admin/logs", tone: "amber" as const },
-        { label: "Community feedback", value: data.communityFeedback, href: "/admin/logs", tone: "emerald" as const },
-        { label: "Offline attempts", value: data.offlineAttempts, href: "/admin/logs", tone: "slate" as const },
-      ]
+      { label: "Unanswered queries", value: data.unanswered, href: "/admin/logs", tone: "amber" as const },
+      { label: "Community feedback", value: data.communityFeedback, href: "/admin/logs", tone: "emerald" as const },
+      { label: "Offline attempts", value: data.offlineAttempts, href: "/admin/logs", tone: "slate" as const },
+    ]
     : [];
   const count = data?.unanswered ?? 0;
 
@@ -374,13 +397,12 @@ function Notifications() {
                     className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50"
                   >
                     <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
-                        it.tone === "amber"
-                          ? "bg-amber-50 text-amber-700"
-                          : it.tone === "emerald"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold tabular-nums ${it.tone === "amber"
+                        ? "bg-amber-50 text-amber-700"
+                        : it.tone === "emerald"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                        }`}
                     >
                       {it.value}
                     </span>
@@ -399,11 +421,10 @@ function Notifications() {
 function RoleBadge({ role }: { role: AdminUser["role"] }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset ${
-        role === "admin"
-          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-          : "bg-slate-100 text-slate-600 ring-slate-200"
-      }`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset ${role === "admin"
+        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+        : "bg-slate-100 text-slate-600 ring-slate-200"
+        }`}
     >
       {role}
     </span>
@@ -498,7 +519,9 @@ function ProfileMenu({ user }: { user: AdminUser }) {
 // ── Mobile bottom tab bar ─────────────────────────────────────────────────────────
 function BottomNav({ user }: { user: AdminUser }) {
   const pathname = usePathname();
-  const items = [...visibleMainNav(user.role), ACCOUNT_NAV[0]]; // + Profile
+  // Cap at 4 primary tabs + Profile so the bar stays comfortable on small phones;
+  // anything beyond that (e.g. Users) is still reachable via the drawer menu.
+  const items = [...visibleMainNav(user.role).slice(0, 4), ACCOUNT_NAV[0]];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       {items.map(({ href, label, icon: Icon }) => {
@@ -508,14 +531,12 @@ function BottomNav({ user }: { user: AdminUser }) {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-              active ? "text-emerald-700" : "text-slate-400"
-            }`}
+            className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${active ? "text-emerald-700" : "text-slate-400"
+              }`}
           >
             <span
-              className={`flex h-8 w-12 items-center justify-center rounded-full transition-colors ${
-                active ? "bg-emerald-50" : ""
-              }`}
+              className={`flex h-8 w-12 items-center justify-center rounded-full transition-colors ${active ? "bg-emerald-50" : ""
+                }`}
             >
               <Icon className="h-5 w-5" />
             </span>
@@ -553,24 +574,17 @@ function LoginScreen() {
       {/* Left — branding + form */}
       <div className="relative flex flex-col justify-center bg-white px-6 py-10 sm:px-10 lg:px-16">
         <div className="mx-auto w-full max-w-md animate-fade-up">
-          <Link href="/" className="mb-10 inline-flex items-center gap-3">
+          <Link href="/" className="mb-10 inline-flex">
             <Image
-              src="/images/AflaChatLogo.png"
+              src="/images/aflachat-logo-trimmed.png"
               alt="AflaChat"
-              width={48}
-              height={48}
-              className="h-12 w-12 rounded-xl object-contain"
+              width={138}
+              height={50}
+              className="h-10 w-auto object-contain"
               priority
             />
-            <div className="leading-tight">
-              <p className="text-lg font-bold text-slate-900">AflaChat</p>
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600">
-                Admin Console
-              </p>
-            </div>
           </Link>
 
-          <span className="eyebrow mb-4">Secure access</span>
           <h1 className="font-heading text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Welcome back
           </h1>

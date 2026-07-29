@@ -5,21 +5,31 @@ import { useLanguage } from "@/components/LanguageContext";
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
+import { submitContact } from "@/lib/contactApi";
 
 export default function Contact() {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // NOTE: no backend endpoint yet — simulated submit. Wire to /api/contact
-    // (or Resend/Formspree) before launch; see docs/redesign/01-AUDIT.md §3.
+    const form = new FormData(e.currentTarget);
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    setError(null);
+    try {
+      await submitContact({
+        name: String(form.get("name") ?? ""),
+        email: String(form.get("email") ?? ""),
+        message: String(form.get("message") ?? ""),
+      });
       setSubmitted(true);
-    }, 700);
+    } catch (err) {
+      setError((err as Error).message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -106,14 +116,25 @@ export default function Contact() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <Field label={t.contact.formName}>
-                {(props) => <Input {...props} required type="text" placeholder={t.contact.formNamePlaceholder} />}
+                {(props) => (
+                  <Input {...props} name="name" required type="text" placeholder={t.contact.formNamePlaceholder} />
+                )}
               </Field>
               <Field label={t.contact.formEmail}>
-                {(props) => <Input {...props} required type="email" placeholder={t.contact.formEmailPlaceholder} />}
+                {(props) => (
+                  <Input {...props} name="email" required type="email" placeholder={t.contact.formEmailPlaceholder} />
+                )}
               </Field>
               <Field label={t.contact.formMessage}>
-                {(props) => <Textarea {...props} required rows={4} placeholder={t.contact.formMessagePlaceholder} />}
+                {(props) => (
+                  <Textarea {...props} name="message" required rows={4} placeholder={t.contact.formMessagePlaceholder} />
+                )}
               </Field>
+              {error && (
+                <p role="alert" className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
+                  {error}
+                </p>
+              )}
               <Button type="submit" size="lg" loading={submitting} className="w-full text-lg">
                 {t.contact.formSubmit}
                 <Send className="w-5 h-5" aria-hidden />

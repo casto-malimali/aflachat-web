@@ -123,7 +123,7 @@ export default function SettingsPage() {
           <InfoRow label="Signed in as">
             <span className="flex items-center gap-2">
               {user?.email}
-              {user && <Badge tone={user.role === "admin" ? "emerald" : "slate"}>{user.role}</Badge>}
+              {user && <Badge tone={user.role === "admin" ? "forest" : "slate"}>{user.role}</Badge>}
             </span>
           </InfoRow>
           <InfoRow label="API endpoint">
@@ -160,7 +160,7 @@ function Toggle({
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-          checked ? "bg-emerald-600" : "bg-slate-200"
+          checked ? "bg-forest-moss-600" : "bg-slate-200"
         }`}
       >
         <span

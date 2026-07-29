@@ -8,6 +8,7 @@ import {
   type SessionRow,
 } from "@/lib/adminApi";
 import { useAdminData } from "@/components/admin/useAdmin";
+import { useLiveEvent } from "@/components/admin/LiveContext";
 import {
   EmptyState,
   ErrorState,
@@ -21,7 +22,6 @@ import {
 
 const TABS = [
   { key: "sessions", label: "Sessions" },
-  { key: "feedback", label: "Community feedback" },
   { key: "events", label: "Offline events" },
   { key: "unanswered", label: "Unanswered" },
 ] as const;
@@ -52,7 +52,7 @@ export default function LogsPage() {
               onClick={() => setTab(t.key)}
               className={`whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
                 tab === t.key
-                  ? "bg-white text-emerald-700 shadow-sm"
+                  ? "bg-white text-forest-moss-700 shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
@@ -63,7 +63,6 @@ export default function LogsPage() {
       </div>
 
       {tab === "sessions" && <SessionsTab onOpen={setOpenId} />}
-      {tab === "feedback" && <FeedbackTab />}
       {tab === "events" && <EventsTab />}
       {tab === "unanswered" && <UnansweredTab />}
 
@@ -87,6 +86,7 @@ function RefreshButton({ onClick }: { onClick: () => void }) {
 // ── Sessions ──────────────────────────────────────────────────────────────────
 function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
   const { data, loading, error, refetch } = useAdminData(() => api.sessions(200), [], onAuthError);
+  useLiveEvent(["session.created", "session.ended", "message.created"], refetch);
 
   return (
     <Panel title="Recent sessions" action={<RefreshButton onClick={refetch} />} className="overflow-hidden">
@@ -116,7 +116,7 @@ function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
                   <tr
                     key={s.id}
                     onClick={() => onOpen(s.id)}
-                    className="cursor-pointer border-b border-slate-50 transition-colors last:border-0 hover:bg-emerald-50/50"
+                    className="cursor-pointer border-b border-slate-50 transition-colors last:border-0 hover:bg-forest-moss-50/50"
                   >
                     <td className="px-5 py-3 text-slate-700" title={fmtDateTime(s.startedAt)}>
                       {fmtRelative(s.startedAt)}
@@ -149,9 +149,9 @@ function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
               <li key={s.id}>
                 <button
                   onClick={() => onOpen(s.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors active:bg-emerald-50/60"
+                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors active:bg-forest-moss-50/60"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-moss-50 text-forest-moss-600">
                     {s.source === "web" ? <Globe className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -236,14 +236,14 @@ function TranscriptDrawer({ id, onClose }: { id: string; onClose: () => void }) 
                       <div
                         className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
                           m.role === "user"
-                            ? "rounded-br-sm bg-emerald-600 text-white"
+                            ? "rounded-br-sm bg-forest-moss-600 text-white"
                             : "rounded-bl-sm border border-slate-100 bg-white text-slate-800"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{m.content}</p>
                         <p
                           className={`mt-1 text-[10px] ${
-                            m.role === "user" ? "text-emerald-100" : "text-slate-400"
+                            m.role === "user" ? "text-forest-moss-100" : "text-slate-400"
                           }`}
                         >
                           {fmtRelative(m.createdAt)}
@@ -263,41 +263,10 @@ function TranscriptDrawer({ id, onClose }: { id: string; onClose: () => void }) 
   );
 }
 
-// ── Community feedback ────────────────────────────────────────────────────────
-function FeedbackTab() {
-  const { data, loading, error, refetch } = useAdminData(() => api.feedback(200), [], onAuthError);
-  return (
-    <Panel title="Community feedback" action={<RefreshButton onClick={refetch} />}>
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorState message={error} onRetry={refetch} />
-      ) : !data?.length ? (
-        <EmptyState label="No feedback yet" hint="Community feedback submitted in the app will show up here." />
-      ) : (
-        <ul className="space-y-3">
-          {data.map((f, i) => (
-            <li key={i} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 transition-colors hover:bg-slate-50">
-              <p className="text-sm leading-relaxed text-slate-800">{f.message}</p>
-              <div className="mt-2.5 flex items-center gap-2 text-xs text-slate-400">
-                <Tag value={f.language} />
-                <span>·</span>
-                <span title={fmtDateTime(f.createdAt)}>{fmtRelative(f.createdAt)}</span>
-                {f.deviceHash && (
-                  <span className="ml-auto font-mono">{f.deviceHash.slice(0, 10)}</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Panel>
-  );
-}
-
 // ── Offline events ────────────────────────────────────────────────────────────
 function EventsTab() {
   const { data, loading, error, refetch } = useAdminData(() => api.events(200), [], onAuthError);
+  useLiveEvent("offline.created", refetch);
   return (
     <Panel title="Offline attempts" action={<RefreshButton onClick={refetch} />}>
       {loading ? (
@@ -326,6 +295,7 @@ function EventsTab() {
 // ── Unanswered ────────────────────────────────────────────────────────────────
 function UnansweredTab() {
   const { data, loading, error, refetch } = useAdminData(() => api.unanswered(), [], onAuthError);
+  useLiveEvent("unanswered.created", refetch);
   return (
     <Panel title="Unanswered queries" action={<RefreshButton onClick={refetch} />}>
       {loading ? (

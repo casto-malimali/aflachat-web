@@ -105,6 +105,16 @@ export interface UnansweredRow {
   createdAt: string;
 }
 
+/** A submission from the public Contact page (POST /api/contact on the backend). */
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: "new" | "read" | "archived";
+  createdAt: string;
+}
+
 // ── Endpoints ─────────────────────────────────────────────────────────────────
 export const api = {
   overview: () => adminFetch<Overview>("/overview"),
@@ -125,4 +135,14 @@ export const api = {
     adminFetch<{ events: OfflineEventRow[] }>(`/events?limit=${limit}`).then((r) => r.events),
   unanswered: () =>
     adminFetch<{ unanswered: UnansweredRow[] }>("/unanswered").then((r) => r.unanswered),
+  /** Not under /api/analytics — this is a distinct resource. */
+  contactSubmissions: () =>
+    apiRequest<{ submissions: ContactSubmission[] }>("/api/contact/submissions").then(
+      (r) => r.submissions,
+    ),
+  updateContactStatus: (id: string, status: ContactSubmission["status"]) =>
+    apiRequest<{ submission: ContactSubmission }>(`/api/contact/submissions/${id}`, {
+      method: "PATCH",
+      body: { status },
+    }).then((r) => r.submission),
 };

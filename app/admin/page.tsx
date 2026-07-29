@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/adminApi";
 import { useAdminData } from "@/components/admin/useAdmin";
+import { useLiveEvent } from "@/components/admin/LiveContext";
 import { BarList, Donut, LineChart } from "@/components/admin/charts";
 import {
+  calcGrowth,
   ErrorState,
   Panel,
   Spinner,
@@ -59,8 +61,28 @@ export default function OverviewPage() {
     quality.refetch();
   };
 
+  // Live: any of these means the numbers on this page just went stale.
+  useLiveEvent(
+    ["session.created", "session.ended", "message.created", "feedback.created", "offline.created", "unanswered.created"],
+    refreshAll,
+  );
+
   const o = overview.data;
   const p = o?.platforms;
+
+  // Period-over-period growth: split the selected range in half and compare
+  // sums, so "+12%" means "busier in the recent half of this range."
+  const seriesData = series.data ?? [];
+  const mid = Math.floor(seriesData.length / 2);
+  const earlier = seriesData.slice(0, mid);
+  const recent = seriesData.slice(mid);
+  const sum = (rows: typeof seriesData, key: "sessions" | "messages") =>
+    rows.reduce((a, r) => a + r[key], 0);
+  const trendLabel = `vs earlier ${days}d`;
+  const sessionsGrowth =
+    earlier.length && recent.length ? calcGrowth(sum(recent, "sessions"), sum(earlier, "sessions")) : null;
+  const messagesGrowth =
+    earlier.length && recent.length ? calcGrowth(sum(recent, "messages"), sum(earlier, "messages")) : null;
 
   return (
     <div className="space-y-6">
@@ -85,13 +107,20 @@ export default function OverviewPage() {
         <ErrorState message={overview.error} onRetry={overview.refetch} />
       ) : o ? (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard label="Sessions" value={fmtNum(o.sessions)} sub={`${o.endedSessions} ended`} icon={Users} />
+          <StatCard
+            label="Sessions"
+            value={fmtNum(o.sessions)}
+            sub={`${o.endedSessions} ended`}
+            icon={Users}
+            trend={{ growth: sessionsGrowth, label: trendLabel }}
+          />
           <StatCard
             label="Messages"
             value={fmtNum(o.messages)}
             sub={`${fmtNum(o.userMessages)} from users`}
             accent="#0ea5e9"
             icon={MessageSquare}
+            trend={{ growth: messagesGrowth, label: trendLabel }}
           />
           <StatCard
             label="Avg / session"
@@ -114,7 +143,7 @@ export default function OverviewPage() {
             label="Web sessions"
             value={p ? fmtNum(p.web) : "—"}
             sub={p ? `${p.android + p.ios + p.other} from app` : undefined}
-            accent="#10b981"
+            accent="#66b710"
             icon={Globe}
           />
         </div>
@@ -129,9 +158,8 @@ export default function OverviewPage() {
               <button
                 key={r}
                 onClick={() => setDays(r)}
-                className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
-                  days === r ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
+                className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${days === r ? "bg-white text-forest-moss-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
               >
                 {r}d
               </button>
@@ -144,25 +172,17 @@ export default function OverviewPage() {
         ) : series.error ? (
           <ErrorState message={series.error} onRetry={series.refetch} />
         ) : (
-          <>
-            <LineChart
-              data={(series.data ?? []).map((d) => ({
-                label: d.day.slice(5),
-                Sessions: d.sessions,
-                Messages: d.messages,
-              }))}
-              series={[
-                { key: "Sessions", label: "Sessions", color: "#10b981" },
-                { key: "Messages", label: "Messages", color: "#0ea5e9" },
-              ]}
-            />
-            <Legend
-              items={[
-                { label: "Sessions", color: "#10b981" },
-                { label: "Messages", color: "#0ea5e9" },
-              ]}
-            />
-          </>
+          <LineChart
+            data={(series.data ?? []).map((d) => ({
+              label: d.day.slice(5),
+              Sessions: d.sessions,
+              Messages: d.messages,
+            }))}
+            series={[
+              { key: "Sessions", label: "Sessions", color: "#66b710" },
+              { key: "Messages", label: "Messages", color: "#0ea5e9" },
+            ]}
+          />
         )}
       </Panel>
 
@@ -173,7 +193,7 @@ export default function OverviewPage() {
             <Donut
               segments={[
                 { label: "Website", value: p.web, color: "#0ea5e9" },
-                { label: "Android", value: p.android, color: "#10b981" },
+                { label: "Android", value: p.android, color: "#66b710" },
                 { label: "iOS", value: p.ios, color: "#0d9488" },
                 { label: "Other", value: p.other, color: "#cbd5e1" },
               ]}
@@ -214,7 +234,7 @@ export default function OverviewPage() {
             <Spinner />
           ) : quality.data ? (
             <div className="grid grid-cols-2 gap-4">
-              <StatCard label="👍 Helpful" value={quality.data.feedback.up} accent="#10b981" />
+              <StatCard label="👍 Helpful" value={quality.data.feedback.up} accent="#66b710" />
               <StatCard label="👎 Not helpful" value={quality.data.feedback.down} accent="#ef4444" />
               <StatCard
                 label="Context hit rate"
@@ -227,19 +247,6 @@ export default function OverviewPage() {
           ) : null}
         </Panel>
       </div>
-    </div>
-  );
-}
-
-function Legend({ items }: { items: { label: string; color: string }[] }) {
-  return (
-    <div className="mt-3 flex justify-center gap-5 text-xs text-slate-500">
-      {items.map((i) => (
-        <span key={i.label} className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: i.color }} />
-          {i.label}
-        </span>
-      ))}
     </div>
   );
 }

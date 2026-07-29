@@ -36,7 +36,7 @@ export default function ProfilePage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <h3 className="text-lg font-bold text-slate-900">{user.name}</h3>
-              <Badge tone={user.role === "admin" ? "emerald" : "slate"}>
+              <Badge tone={user.role === "admin" ? "forest" : "slate"}>
                 <ShieldCheck className="h-3 w-3" />
                 {user.role}
               </Badge>

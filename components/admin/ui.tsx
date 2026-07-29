@@ -11,7 +11,7 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
 } from "react";
-import { CheckCircle2, Inbox, Loader2, X, XCircle } from "lucide-react";
+import { CheckCircle2, Inbox, Loader2, TrendingDown, TrendingUp, X, XCircle } from "lucide-react";
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 export function fmtNum(n: number): string {
@@ -50,41 +50,76 @@ export function fmtDateTime(iso: string): string {
   });
 }
 
+/** Percentage change of `current` vs `previous`, or null when it can't be judged (no prior baseline). */
+export function calcGrowth(current: number, previous: number): number | null {
+  if (previous <= 0) return current > 0 ? null : 0;
+  return ((current - previous) / previous) * 100;
+}
+
+/** Small colored delta pill — green/up or red/down, hidden entirely when growth is null. */
+export function TrendBadge({ growth, label }: { growth: number | null; label?: string }) {
+  if (growth === null) return null;
+  const up = growth >= 0;
+  const Icon = up ? TrendingUp : TrendingDown;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${up ? "bg-forest-moss-50 text-forest-moss-700" : "bg-red-50 text-red-600"
+        }`}
+      title={label}
+    >
+      <Icon className="h-3 w-3" />
+      {up ? "+" : ""}
+      {Math.round(growth)}%
+    </span>
+  );
+}
+
 // ── Layout primitives ─────────────────────────────────────────────────────────
 export function StatCard({
   label,
   value,
   sub,
-  accent = "#10b981",
+  accent = "#66b710",
   icon: Icon,
+  trend,
 }: {
   label: string;
   value: ReactNode;
   sub?: string;
   accent?: string;
   icon?: ComponentType<{ className?: string }>;
+  /** Optional period-over-period growth badge, e.g. { growth: 12.4, label: "vs prior 15d" }. */
+  trend?: { growth: number | null; label?: string };
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-      {/* Accent strip */}
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-lg hover:ring-slate-100 sm:p-5">
+      {/* Accent glow */}
+      <span
+        className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-[0.07] blur-xl transition-opacity group-hover:opacity-[0.12]"
+        style={{ background: accent }}
+        aria-hidden
+      />
       <span
         className="absolute inset-x-0 top-0 h-1 opacity-80"
         style={{ background: accent }}
         aria-hidden
       />
-      <div className="flex items-start justify-between gap-2">
+      <div className="relative flex items-start justify-between gap-2">
         <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
         {Icon && (
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105"
             style={{ background: `${accent}1a`, color: accent }}
           >
             <Icon className="h-4 w-4" />
           </span>
         )}
       </div>
-      <div className="mt-2 text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-slate-400">{sub}</div>}
+      <div className="relative mt-2 flex flex-wrap items-center gap-2">
+        <span className="text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">{value}</span>
+        {trend && <TrendBadge growth={trend.growth} label={trend.label} />}
+      </div>
+      {sub && <div className="relative mt-0.5 text-xs text-slate-400">{sub}</div>}
     </div>
   );
 }
@@ -101,10 +136,12 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>
+    <section
+      className={`rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md ${className}`}
+    >
       {(title || action) && (
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3.5 sm:px-5">
-          {title && <h2 className="text-sm font-semibold text-slate-800">{title}</h2>}
+          {title && <h2 className="text-sm font-semibold tracking-tight text-slate-800">{title}</h2>}
           {action}
         </header>
       )}
@@ -115,10 +152,10 @@ export function Panel({
 
 const SOURCE_STYLES: Record<string, string> = {
   web: "bg-sky-50 text-sky-700 ring-sky-200",
-  android: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  android: "bg-forest-moss-50 text-forest-moss-700 ring-forest-moss-200",
   ios: "bg-teal-50 text-teal-700 ring-teal-200",
   other: "bg-slate-100 text-slate-600 ring-slate-200",
-  en: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  en: "bg-forest-moss-50 text-forest-moss-700 ring-forest-moss-200",
   sw: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
@@ -134,7 +171,7 @@ export function Tag({ value }: { value: string }) {
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
     <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-400">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-forest-moss-500" />
       {label}
     </div>
   );
@@ -206,7 +243,7 @@ export function EmptyState({
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
 const BUTTON_STYLES: Record<ButtonVariant, string> = {
-  primary: "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50",
+  primary: "bg-forest-moss-600 text-white shadow-sm hover:bg-forest-moss-700 disabled:opacity-50",
   secondary:
     "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50",
   danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 disabled:opacity-50",
@@ -271,7 +308,7 @@ export function Field({
 }
 
 const CONTROL =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 disabled:opacity-60";
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-forest-moss-500 focus:bg-white focus:ring-4 focus:ring-forest-moss-500/10 disabled:opacity-60";
 
 export function Input({ className = "", ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={`${CONTROL} ${className}`} />;
@@ -294,10 +331,10 @@ export function Badge({
   tone = "slate",
 }: {
   children: ReactNode;
-  tone?: "emerald" | "amber" | "red" | "sky" | "slate";
+  tone?: "forest" | "amber" | "red" | "sky" | "slate";
 }) {
   const tones: Record<string, string> = {
-    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    forest: "bg-forest-moss-50 text-forest-moss-700 ring-forest-moss-200",
     amber: "bg-amber-50 text-amber-700 ring-amber-200",
     red: "bg-red-50 text-red-700 ring-red-200",
     sky: "bg-sky-50 text-sky-700 ring-sky-200",
@@ -321,7 +358,7 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
       .slice(0, 2)
       .map((w) => w[0]?.toUpperCase() ?? "")
       .join("") || "?";
-  const hues = ["#10b981", "#0ea5e9", "#6366f1", "#f59e0b", "#ec4899", "#14b8a6"];
+  const hues = ["#66b710", "#0ea5e9", "#6366f1", "#f59e0b", "#ec4899", "#14b8a6"];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   const color = hues[h % hues.length];
@@ -434,7 +471,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-lg animate-fade-up"
           >
             {t.tone === "success" ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-forest-moss-500" />
             ) : (
               <XCircle className="h-5 w-5 shrink-0 text-red-500" />
             )}

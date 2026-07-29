@@ -23,6 +23,28 @@
   --color-wheat: #4C8D0A;              /* Leaf green for badges/highlights */
   --color-leaf: #4C8D0A;               /* Fresh foliage green */
 
+  /* Admin dashboard brand — forest-moss (main) / espresso (secondary accent).
+     Full numeric scale derived from the brand hex (#427c04 = forest-moss-700
+     exactly) by rotating Tailwind's own emerald lightness/saturation curve
+     onto forest-moss's hue (89deg), so every existing `emerald-{n}` usage in
+     app/admin/* and components/admin/* maps 1:1 to `forest-moss-{n}`. */
+  --color-forest-moss-50: #f5fded;
+  --color-forest-moss-100: #e6fad1;
+  --color-forest-moss-200: #cdf3a5;
+  --color-forest-moss-300: #ade76e;
+  --color-forest-moss-400: #87d336;
+  --color-forest-moss-500: #66b710;
+  --color-forest-moss-600: #4f9405;
+  --color-forest-moss-700: #427c04;
+  /* brand base */
+  --color-forest-moss-800: #346006;
+  --color-forest-moss-900: #2a4c06;
+  --color-forest-moss-950: #182c02;
+  --color-espresso: #652323;
+  /* brand base */
+  --color-espresso-hover: #501b1b;
+  --color-espresso-light: #f8e7e7;
+
   /* Semantic */
   --color-success: #16a34a;
   --color-warning: #d97706;
@@ -31,15 +53,22 @@
 
   /* Neutrals / surfaces — updated to clean green-tinted grays & off-whites */
   --color-background: #ffffff;
-  --color-cream: #F4F6F4;              /* Soft gray-green background */
-  --color-cream-2: #EDF1ED;            /* Deeper gray-green background */
-  --color-surface: #ffffff;            /* Card surface (pure white) */
-  --color-surface-2: #F4F6F4;          /* Inset surface */
-  --color-border: #E2E6E2;             /* Subtle clean border */
+  --color-cream: #F4F6F4;
+  /* Soft gray-green background */
+  --color-cream-2: #EDF1ED;
+  /* Deeper gray-green background */
+  --color-surface: #ffffff;
+  /* Card surface (pure white) */
+  --color-surface-2: #F4F6F4;
+  /* Inset surface */
+  --color-border: #E2E6E2;
+  /* Subtle clean border */
   --color-border-strong: #CBD5CB;
-  --color-foreground: #13251E;         /* Deep forest charcoal for body text */
+  --color-foreground: #13251E;
+  /* Deep forest charcoal for body text */
   --color-muted: #F4F6F4;
-  --color-muted-foreground: #4F6158;   /* Sage/slate green-gray */
+  --color-muted-foreground: #4F6158;
+  /* Sage/slate green-gray */
 
   /* Typography — characterful sans DISPLAY paired with the existing body sans */
   --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
@@ -72,7 +101,8 @@
      build-time network font download. */
   --font-poppins: "Poppins", "Segoe UI", system-ui, sans-serif;
   --font-inter: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-playfair: "Poppins", "Segoe UI", system-ui, sans-serif; /* sans display */
+  --font-playfair: "Poppins", "Segoe UI", system-ui, sans-serif;
+  /* sans display */
 }
 
 /* Dark palette — opt-in: add the `dark` class to <html> to activate. Shipped
@@ -115,10 +145,16 @@ body {
 
 /* ── Base layer: accessibility defaults ──────────────────────────────────── */
 @layer base {
+
   /* Default heading face. Lives in @layer base (not unlayered) so the
      `.display` serif utility in @layer components can override it — unlayered
      rules would otherwise always win regardless of specificity. */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
   }
@@ -130,7 +166,10 @@ body {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -141,17 +180,28 @@ body {
 
 /* ── Component utilities (replace the old ad-hoc helpers) ─────────────────── */
 @layer components {
+
   /* Repeated "eyebrow" pill (WELCOME / badge) */
   .eyebrow {
-    @apply inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase
-           tracking-widest text-secondary bg-secondary/10 border border-secondary/20 rounded-full;
+    @apply inline-flex items-center gap-2 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary bg-secondary/10 border border-secondary/20 rounded-full;
   }
-  /* The repeated w-12 h-1 accent rule */
-  .rule-accent { @apply w-12 h-1 rounded-full bg-primary; }
 
-  .font-heading { font-family: var(--font-heading); }
-  .font-body { font-family: var(--font-body); }
-  .font-display { font-family: var(--font-display); }
+  /* The repeated w-12 h-1 accent rule */
+  .rule-accent {
+    @apply w-12 h-1 rounded-full bg-primary;
+  }
+
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
 
   /* Serif display headline — the signature voice of the redesign. */
   .display {
@@ -161,27 +211,45 @@ body {
     line-height: 1.02;
   }
 
-  .heading-classic { font-family: var(--font-heading); letter-spacing: -0.02em; line-height: 1.15; }
+  .heading-classic {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
 
   /* Real gradient text (was previously a flat @apply text-primary) */
   .text-gradient {
     @apply bg-gradient-to-r from-secondary to-emerald-300 bg-clip-text text-transparent;
   }
 
-  .glass { @apply bg-surface/80 backdrop-blur-md border border-border shadow-sm; }
-  .card-classic { @apply bg-surface border border-border rounded-2xl shadow-sm; }
+  .glass {
+    @apply bg-surface/80 backdrop-blur-md border border-border shadow-sm;
+  }
+
+  .card-classic {
+    @apply bg-surface border border-border rounded-2xl shadow-sm;
+  }
 
   /* ── Organic textures & motifs ──────────────────────────────────────────
      Tactile, paper-like surfaces with a sparse grain so flat colour never
      reads as "AI-flat". All overlays are pointer-events:none and GPU-cheap. */
 
   /* Warm paper background for light sections */
-  .bg-paper { background-color: var(--color-cream); }
-  .bg-paper-2 { background-color: var(--color-cream-2); }
+  .bg-paper {
+    background-color: var(--color-cream);
+  }
+
+  .bg-paper-2 {
+    background-color: var(--color-cream-2);
+  }
 
   /* Fine film grain laid over any surface via a tiling SVG noise data-URI.
      Very low opacity — felt, not seen. */
-  .texture-grain { position: relative; isolation: isolate; }
+  .texture-grain {
+    position: relative;
+    isolation: isolate;
+  }
+
   .texture-grain::after {
     content: "";
     position: absolute;
@@ -216,9 +284,7 @@ body {
 
   /* Pill button with clay accent */
   .btn-clay {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-clay)]
-           px-6 py-3 font-semibold text-[var(--color-clay-foreground)] shadow-md
-           transition-colors hover:bg-[var(--color-clay-hover)];
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-clay)] px-6 py-3 font-semibold text-[var(--color-clay-foreground)] shadow-md transition-colors hover:bg-[var(--color-clay-hover)];
   }
 
   .section-divider::before {
@@ -234,32 +300,75 @@ body {
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes drift {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -14px, 0) scale(1.04); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.04);
+  }
 }
+
 @keyframes sway {
-  0%, 100% { transform: rotate(-2.5deg); }
-  50% { transform: rotate(2.5deg); }
+
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+
+  50% {
+    transform: rotate(2.5deg);
+  }
 }
-.animate-fade-up { animation: fade-up 0.7s ease-out forwards; }
-.animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
 /* Slow ambient motion for decorative-only elements (paused under reduced-motion
    by the base @media rule above). */
-.animate-drift { animation: drift 11s ease-in-out infinite; }
-.animate-sway { animation: sway 7s ease-in-out infinite; transform-origin: bottom center; }
+.animate-drift {
+  animation: drift 11s ease-in-out infinite;
+}
+
+.animate-sway {
+  animation: sway 7s ease-in-out infinite;
+  transform-origin: bottom center;
+}
 
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

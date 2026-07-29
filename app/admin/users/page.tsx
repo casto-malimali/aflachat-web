@@ -142,7 +142,7 @@ export default function UsersPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3">
-                        <Badge tone={u.role === "admin" ? "emerald" : "slate"}>{u.role}</Badge>
+                        <Badge tone={u.role === "admin" ? "forest" : "slate"}>{u.role}</Badge>
                       </td>
                       <td className="px-5 py-3">
                         <Badge tone={u.status === "active" ? "sky" : "amber"}>{u.status}</Badge>
@@ -181,7 +181,7 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
-                    <Badge tone={u.role === "admin" ? "emerald" : "slate"}>{u.role}</Badge>
+                    <Badge tone={u.role === "admin" ? "forest" : "slate"}>{u.role}</Badge>
                     <Badge tone={u.status === "active" ? "sky" : "amber"}>{u.status}</Badge>
                     <span className="ml-auto text-xs text-slate-400">
                       {u.lastLoginAt ? fmtRelative(u.lastLoginAt) : "Never"}
