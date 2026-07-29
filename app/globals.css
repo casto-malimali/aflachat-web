@@ -255,3 +255,12 @@ body {
    by the base @media rule above). */
 .animate-drift { animation: drift 11s ease-in-out infinite; }
 .animate-sway { animation: sway 7s ease-in-out infinite; transform-origin: bottom center; }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

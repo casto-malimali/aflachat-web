@@ -434,7 +434,7 @@ export default function ChatWidget() {
             aria-live="polite"
             aria-atomic="false"
             aria-busy={loading || streaming}
-            className="flex-1 space-y-4 overflow-y-auto bg-surface-2/40 px-3 py-4"
+            className="flex-1 space-y-4 overflow-y-auto no-scrollbar bg-surface-2/40 px-3 py-4"
           >
             <p className="mx-auto max-w-[90%] rounded-lg bg-warning/10 px-3 py-2 text-center text-[11px] text-warning">
               {t.disclaimer}
