@@ -5,7 +5,7 @@ name: Deploy frontend to VPS
 
 on:
   push:
-    branches: [master, feature/chat-widget]
+    branches: [master, feature/chat-widget, New-Design]
   workflow_dispatch:
 
 concurrency:
