@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useReducedMotion, AnimatePresence } from "motion/react";
 import { useLanguage } from "@/components/LanguageContext";
 import PlayStoreButton from "@/components/PlayStoreButton";
 import { FeatureCard } from "@/components/ui/FeatureCard";
@@ -12,9 +12,23 @@ import {
   Tractor, Sprout, GraduationCap, HeartPulse, Store, Leaf,
 } from "lucide-react";
 
+const HERO_IMAGES = [
+  "/images/2148761810.jpg",
+  "/images/2149142834.jpg",
+  "/images/41468.jpg",
+];
+
 export default function Home() {
   const { t } = useLanguage();
   const reduce = useReducedMotion();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Hero parallax: the photo drifts slower than the page for depth.
   const heroRef = useRef<HTMLElement>(null);
@@ -41,14 +55,21 @@ export default function Home() {
     <div className="flex flex-col">
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
       <section ref={heroRef} className="relative min-h-[94vh] flex items-center overflow-hidden">
-        {/* Parallax photo + layered earthy scrim */}
-        <motion.div style={{ y: photoY }} className="absolute inset-0 -z-20 h-[118%]">
-          <img
-            src="/images/2148761810.jpg"
-            alt=""
-            aria-hidden
-            className="h-full w-full object-cover"
-          />
+        {/* Parallax photo slider + layered earthy scrim */}
+        <motion.div style={{ y: photoY }} className="absolute inset-0 -z-20 h-[118%] w-full">
+          <AnimatePresence mode="popLayout">
+            <motion.img
+              key={currentImageIndex}
+              src={HERO_IMAGES[currentImageIndex]}
+              alt=""
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </AnimatePresence>
         </motion.div>
         <div className="absolute inset-0 -z-10 hero-scrim" />
         {/* Ambient drifting leaf orbs (decorative) */}
@@ -77,14 +98,15 @@ export default function Home() {
             </StaggerItem>
             <StaggerItem>
               <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                <PlayStoreButton />
-                <a
-                  href="#how"
-                  className="group inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-3 font-semibold text-white transition-colors hover:bg-white/10"
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new Event("aflachat:open"))}
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-clay)] px-6 py-3 font-semibold text-[var(--color-clay-foreground)] shadow-md transition-colors hover:bg-[var(--color-clay-hover)] active:scale-95 cursor-pointer h-14"
                 >
-                  {t.hero.learnHow}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </a>
+                  <MessageCircle className="h-5 w-5" aria-hidden />
+                  {t.hero.openAflachat}
+                </button>
+                <PlayStoreButton />
               </div>
             </StaggerItem>
 
@@ -116,8 +138,7 @@ export default function Home() {
           ))}
         </Stagger>
 
-        {/* Bottom fade into paper section */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[var(--color-cream)]" />
+
       </section>
 
       {/* ── How It Works ───────────────────────────────────────────────────── */}

@@ -91,7 +91,7 @@ The application is hosted on the Google Play Store:
 ## 5. Contact Information
 
 For support, collaborations, or inquiries, reach out to the AflaChat team:
-- **Email Support**: `pamsekela@gmail.com`
+- **Email Support**: `chogop@nm-aist.ac.tz`
 - **Primary Location**: Arusha, Tanzania.
 - **Supported Languages**: English and Swahili.
 

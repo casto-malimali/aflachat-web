@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { useLanguage } from "./LanguageContext";
-import { Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
@@ -76,11 +76,7 @@ export default function Navbar() {
             always reads; once scrolled onto the cream bar the plate fades out. */}
         <Link href="/" aria-label="AflaChat — home" className="group inline-flex shrink-0">
           <span
-            className={`inline-flex items-center rounded-xl transition-all duration-300 ${
-              isScrolled
-                ? "bg-transparent px-0 py-0 shadow-none ring-0"
-                : "bg-white/95 px-3 py-1.5 shadow-md ring-1 ring-black/5 backdrop-blur"
-            }`}
+            className="inline-flex items-center rounded-xl transition-all duration-300"
           >
             <img
               src="/images/aflachat-logo-trimmed.png"
@@ -96,15 +92,10 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => {
             const active = isActive(link.href);
-            // Over the dark hero (transparent bar) links must be light; on the
-            // cream scrolled bar they switch to dark. Active = clay accent.
+            // Consistent contrast-safe theme coloring for links (active = lime green, inactive = forest green).
             const linkColor = active
-              ? isScrolled
-                ? "text-[var(--color-clay)]"
-                : "text-[var(--color-wheat)]"
-              : isScrolled
-                ? "text-[var(--color-soil)] hover:text-[var(--color-clay)]"
-                : "text-white/85 hover:text-white";
+              ? "text-[var(--color-clay)]"
+              : "text-[var(--color-soil)] hover:text-[var(--color-clay)]";
             return (
               <Link
                 key={link.href}
@@ -131,13 +122,8 @@ export default function Navbar() {
               aria-haspopup="menu"
               aria-expanded={isLangOpen}
               aria-label={`Language: ${language === "en" ? "English" : "Swahili"}`}
-              className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${
-                isScrolled
-                  ? "border-[var(--color-border-strong)] text-[var(--color-soil)] hover:border-[var(--color-clay)]/50 hover:bg-[var(--color-clay)]/5"
-                  : "border-white/30 text-white hover:border-white/60 hover:bg-white/10"
-              }`}
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-soil)] hover:border-[var(--color-clay)]/50 hover:bg-[var(--color-clay)]/5 transition-all"
             >
-              <Globe className="w-3.5 h-3.5" aria-hidden />
               {language === "en" ? (
                 <img src="/images/US-UK_Flag.svg" alt="" className="w-4 h-3 object-cover rounded-sm shadow-sm" />
               ) : (
@@ -179,11 +165,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Toggle */}
         <button
-          className={`md:hidden p-2 rounded-lg transition-colors ${
-            isScrolled
-              ? "text-[var(--color-soil)] hover:bg-black/5"
-              : "text-white hover:bg-white/10"
-          }`}
+          className="md:hidden p-2 rounded-lg transition-colors text-[var(--color-soil)] hover:bg-black/5"
           onClick={() => setIsMenuOpen((o) => !o)}
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}

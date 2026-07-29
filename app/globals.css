@@ -6,22 +6,22 @@
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   /* Brand */
-  --color-primary: #072C21;            /* Deep forest green */
-  --color-primary-hover: #041B14;
+  --color-primary: #4C8D0A;            /* Logo green */
+  --color-primary-hover: #3E7308;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #76C24A;          /* Vibrant lime/leaf green accent */
-  --color-secondary-foreground: #072C21;
+  --color-secondary: #4C8D0A;          /* Organic green of the AflaChat logo */
+  --color-secondary-foreground: #1B3602;
   --color-accent: #E2F4E5;             /* Very soft light green tint */
-  --color-accent-foreground: #072C21;
+  --color-accent-foreground: #1B3602;
   --color-gold: #c5a85c;
 
   /* Organic / earthy accents (agriculture redesign) */
-  --color-clay: #76C24A;               /* Leaf green for buttons/primary actions */
-  --color-clay-hover: #62A73B;
+  --color-clay: #4C8D0A;               /* Leaf green for buttons/primary actions */
+  --color-clay-hover: #3E7308;
   --color-clay-foreground: #ffffff;
-  --color-soil: #072C21;               /* Deep forest green for text/titles */
-  --color-wheat: #76C24A;              /* Leaf green for badges/highlights */
-  --color-leaf: #76C24A;               /* Fresh foliage green */
+  --color-soil: #1B3602;               /* Dark logo green for text/titles */
+  --color-wheat: #4C8D0A;              /* Leaf green for badges/highlights */
+  --color-leaf: #4C8D0A;               /* Fresh foliage green */
 
   /* Semantic */
   --color-success: #16a34a;
@@ -204,8 +204,8 @@ body {
      photography, regardless of the underlying image. */
   .hero-scrim {
     background:
-      linear-gradient(105deg, rgb(12 32 24 / 0.86) 0%, rgb(12 32 24 / 0.55) 48%, rgb(12 32 24 / 0.18) 100%),
-      linear-gradient(0deg, rgb(12 32 24 / 0.55) 0%, transparent 55%);
+      linear-gradient(105deg, rgb(27 54 3 / 0.86) 0%, rgb(27 54 3 / 0.55) 48%, rgb(27 54 3 / 0.18) 100%),
+      linear-gradient(0deg, rgb(27 54 3 / 0.55) 0%, transparent 55%);
   }
 
   /* Contrast-safe logo plate — guarantees the brand mark reads on any

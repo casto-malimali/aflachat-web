@@ -24,7 +24,7 @@ export default function Services() {
       <section className="relative h-[50vh] min-h-[340px] overflow-hidden">
         <img
           src="/images/2148761810.jpg"
-          alt="Agricultural field"
+          alt="AflaChat agricultural field representing safe farming practices and aflatoxin prevention"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-zinc-900/60 flex items-center">

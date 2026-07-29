@@ -14,16 +14,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: {
-    default: "AflaChat | AI-Powered Aflatoxin Protection",
+    default: "AflaChat | Access to Verified Aflatoxin Knowledge",
     template: "%s | AflaChat"
   },
-  description: "AflaChat is an AI-powered assistant that provides information and answers related to aflatoxin contamination, food safety, and agricultural practices.",
-  keywords: ["Aflatoxin", "Food Safety", "AI Assistant", "Agriculture", "Tanzania", "AflaChat", "Smart Farming", "Crop Protection"],
+  description: "AflaChat is an AI-powered assistant providing access to verified knowledge and information related to aflatoxin contamination.",
+  keywords: ["Aflatoxin", "Aflatoxin Prevention", "Verified Knowledge", "AI Assistant", "Agriculture", "Tanzania", "AflaChat", "Smart Farming", "Crop Protection", "Mycotoxin Safety", "Aspergillus flavus", "Safe Storage Practices", "Grain Handling"],
   authors: [{ name: "Casto MALIMALI" }],
   creator: "Casto MALIMALI",
   openGraph: {
-    title: "AflaChat | AI-Powered Aflatoxin Protection",
-    description: "An AI-powered mobile application designed to protect farmers and consumers from Aflatoxin by providing instant agricultural guidance and food safety awareness.",
+    title: "AflaChat | Access to Verified Aflatoxin Knowledge",
+    description: "An AI-powered mobile application designed to protect farmers, traders, and consumers by providing instant access to verified aflatoxin knowledge and prevention practices.",
     url: "https://aflachat.com",
     siteName: "AflaChat",
     type: "website",
@@ -32,13 +32,13 @@ export const metadata: Metadata = {
       url: "/images/2148761810.jpg",
       width: 1200,
       height: 630,
-      alt: "Maize field representing agricultural safety",
+      alt: "Maize field representing agricultural safety and aflatoxin knowledge",
     }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AflaChat | AI-Powered Aflatoxin Protection",
-    description: "An AI-powered mobile application designed to protect farmers and consumers from Aflatoxin.",
+    title: "AflaChat | Access to Verified Aflatoxin Knowledge",
+    description: "An AI-powered mobile application designed to provide instant access to verified aflatoxin knowledge.",
     images: ["/images/2148761810.jpg"],
   },
   icons: {

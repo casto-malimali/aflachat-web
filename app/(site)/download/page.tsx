@@ -19,7 +19,7 @@ export default function DownloadPage() {
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <img src="/images/2149142834.jpg" alt="Smartphone in farm" className="w-full h-full object-cover" />
+          <img src="/images/2149142834.jpg" alt="Smartphone showing the AflaChat app interface on a farm to help prevent aflatoxin" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-primary/80" />
         </div>
         <div className="max-w-7xl mx-auto px-6 py-24 w-full">

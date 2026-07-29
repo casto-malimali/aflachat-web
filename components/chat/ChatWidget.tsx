@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Bot, MessageCircle, SquarePen, WifiOff, X } from "lucide-react";
+import { SquarePen, WifiOff, X } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { cn } from "@/lib/cn";
 import {
@@ -29,12 +29,13 @@ const TEXT: Record<Lang, {
   offlineLocal: string; offlineNone: string; error: string; send: string; stop: string;
   open: string; close: string; newChat: string; typing: string; copy: string; copied: string;
   regenerate: string; helpful: string; notHelpful: string; savedGuidance: string;
+  askMe: string;
 }> = {
   en: {
     title: "AflaChat Assistant",
-    subtitle: "Ask about aflatoxin & food safety",
+    subtitle: "Ask about aflatoxin",
     placeholder: "Type your question…",
-    welcome: "Hello! I'm the AflaChat Assistant. Ask me anything about aflatoxin, food preservation, and crop safety.",
+    welcome: "Hello! I'm the AflaChat Assistant. Ask me anything about aflatoxin.",
     disclaimer: "AI answers may have limitations. Consult a local expert for specific advice.",
     offlineLocal: "You're offline — answer from saved guidance:",
     offlineNone: "You're offline and I don't have a saved answer for that. Please reconnect and try again.",
@@ -43,12 +44,13 @@ const TEXT: Record<Lang, {
     newChat: "New chat", typing: "Assistant is typing", copy: "Copy", copied: "Copied",
     regenerate: "Regenerate response", helpful: "Helpful", notHelpful: "Not helpful",
     savedGuidance: "Saved guidance",
+    askMe: "Ask me!",
   },
   sw: {
     title: "Msaidizi wa AflaChat",
-    subtitle: "Uliza kuhusu sumukuvu na usalama wa chakula",
+    subtitle: "Uliza kuhusu sumukuvu",
     placeholder: "Andika swali lako…",
-    welcome: "Habari! Mimi ni Msaidizi wa AflaChat. Niulize chochote kuhusu sumukuvu, uhifadhi wa chakula na usalama wa mazao.",
+    welcome: "Habari! Mimi ni Msaidizi wa AflaChat. Niulize chochote kuhusu sumukuvu.",
     disclaimer: "Majibu ya AI yanaweza kuwa na mapungufu. Wasiliana na mtaalamu kwa ushauri sahihi.",
     offlineLocal: "Hauko mtandaoni — jibu kutoka kwa maelezo yaliyohifadhiwa:",
     offlineNone: "Hauko mtandaoni na sina jibu lililohifadhiwa kwa hilo. Tafadhali unganisha tena ujaribu.",
@@ -57,6 +59,7 @@ const TEXT: Record<Lang, {
     newChat: "Gumzo jipya", typing: "Msaidizi anaandika", copy: "Nakili", copied: "Imenakiliwa",
     regenerate: "Zalisha jibu upya", helpful: "Lasaidia", notHelpful: "Halisaidii",
     savedGuidance: "Maelezo yaliyohifadhiwa",
+    askMe: "Niulize!",
   },
 };
 
@@ -342,18 +345,38 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Launcher */}
-      <button
-        type="button"
-        aria-label={t.open}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={open ? panelId : undefined}
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-secondary/40"
-      >
-        {open ? <X size={24} /> : <MessageCircle size={24} />}
-      </button>
+      {/* Launcher Wrapper */}
+      <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3">
+        {/* Pop text bubble */}
+        {!open && (
+          <div className="relative bg-white border border-primary text-primary text-xs font-semibold px-3 py-1.5 rounded-xl shadow-md whitespace-nowrap animate-fade-in">
+            {t.askMe}
+            {/* Tiny triangle arrow pointing to the button on the right */}
+            <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-2 h-2 bg-white border-t border-r border-primary rotate-45" />
+          </div>
+        )}
+
+        {/* Launcher Button */}
+        <button
+          type="button"
+          aria-label={t.open}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-controls={open ? panelId : undefined}
+          onClick={() => setOpen((o) => !o)}
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white border-2 border-[#6B2D24] text-[#6B2D24] shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#6B2D24]/40"
+        >
+          {open ? (
+            <X size={24} />
+          ) : (
+            <img
+              src="/images/aflachat-chat-icon.png"
+              alt="Chat"
+              className="w-8 h-8 object-contain"
+            />
+          )}
+        </button>
+      </div>
 
       {open && (
         <div
@@ -370,8 +393,12 @@ export default function ChatWidget() {
         >
           {/* Header */}
           <div className="flex items-center gap-3 bg-primary px-4 py-3 text-primary-foreground">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-              <Bot size={20} aria-hidden />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white overflow-hidden p-0.5">
+              <img
+                src="/images/aflachat_logo.png"
+                alt="AflaChat"
+                className="h-full w-full object-contain rounded-full"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <p id={titleId} className="truncate font-heading font-semibold">{t.title}</p>

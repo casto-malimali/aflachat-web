@@ -14,7 +14,7 @@ export default function Privacy() {
         {
           title: "1. Introduction",
           paragraphs: [
-            "AflaChat is an AI powered mobile application designed to provide information and answers related to aflatoxin contamination, food safety, and agricultural awareness. The application assists users such as farmers, traders, students, and the general public in understanding aflatoxin risks and prevention practices.",
+            "AflaChat is an AI powered mobile application designed to provide information and answers related to aflatoxin contamination, food safety, and agricultural awareness. The application assists users such as farmers, traders, and the general public in understanding aflatoxin risks and prevention practices.",
             "By using the AflaChat application, you agree to the collection and use of information in accordance with this Privacy Policy."
           ]
         },
@@ -113,7 +113,7 @@ export default function Privacy() {
         {
           title: "1. Utangulizi",
           paragraphs: [
-            "AflaChat ni programu ya simu ya mkononi inayotumia akili bandia (AI) iliyoundwa ili kutoa taarifa na majibu yanayohusiana na sumukuvu (aflatoxin), usalama wa chakula, na uelewa wa kilimo. Programu hii inasaidia watumiaji kama vile wakulima, wafanyabiashara, wanafunzi, na jamii kwa ujumla katika kuelewa hatari za sumukuvu na mbinu za kuzuia.",
+            "AflaChat ni programu ya simu ya mkononi inayotumia akili bandia (AI) iliyoundwa ili kutoa taarifa na majibu yanayohusiana na sumukuvu (aflatoxin), usalama wa chakula, na uelewa wa kilimo. Programu hii inasaidia watumiaji kama vile wakulima, wafanyabiashara, na jamii kwa ujumla katika kuelewa hatari za sumukuvu na mbinu za kuzuia.",
             "Kwa kutumia programu ya AflaChat, unakubaliana na ukusanyaji na matumizi ya taarifa kwa mujibu wa Sera hii ya Faragha."
           ]
         },
@@ -230,11 +230,11 @@ export default function Privacy() {
                 {/* Format highlighted keywords */}
                 {p.includes("aflatoxin contamination") ? (
                   <>
-                    AflaChat is an AI powered mobile application designed to provide information and answers related to <strong>aflatoxin contamination, food safety, and agricultural awareness</strong>. The application assists users such as farmers, traders, students, and the general public in understanding aflatoxin risks and prevention practices.
+                    AflaChat is an AI powered mobile application designed to provide information and answers related to <strong>aflatoxin contamination, food safety, and agricultural awareness</strong>. The application assists users such as farmers, traders, and the general public in understanding aflatoxin risks and prevention practices.
                   </>
                 ) : p.includes("sumukuvu") ? (
                   <>
-                    AflaChat ni programu ya simu ya mkononi inayotumia akili bandia (AI) iliyoundwa ili kutoa taarifa na majibu yanayohusiana na <strong>sumukuvu (aflatoxin), usalama wa chakula, na uelewa wa kilimo</strong>. Programu hii inasaidia watumiaji kama vile wakulima, wafanyabiashara, wanafunzi, na jamii kwa ujumla katika kuelewa hatari za sumukuvu na mbinu za kuzuia.
+                    AflaChat ni programu ya simu ya mkononi inayotumia akili bandia (AI) iliyoundwa ili kutoa taarifa na majibu yanayohusiana na <strong>sumukuvu (aflatoxin), usalama wa chakula, na uelewa wa kilimo</strong>. Programu hii inasaidia watumiaji kama vile wakulima, wafanyabiashara, na jamii kwa ujumla katika kuelewa hatari za sumukuvu na mbinu za kuzuia.
                   </>
                 ) : p.includes("educational and informational purposes only") ? (
                   <>
@@ -279,12 +279,12 @@ export default function Privacy() {
 
             {section.title.includes("Contact") && (
               <p className="text-zinc-600 mt-4">
-                <strong>Email:</strong> <a href="mailto:pamsekela@gmail.com" className="text-primary hover:underline">pamsekela@gmail.com</a>
+                <strong>Email:</strong> <a href="mailto:chogop@nm-aist.ac.tz" className="text-primary hover:underline">chogop@nm-aist.ac.tz</a>
               </p>
             )}
             {section.title.includes("Mawasiliano") && (
               <p className="text-zinc-600 mt-4">
-                <strong>Barua Pepe:</strong> <a href="mailto:pamsekela@gmail.com" className="text-primary hover:underline">pamsekela@gmail.com</a>
+                <strong>Barua Pepe:</strong> <a href="mailto:chogop@nm-aist.ac.tz" className="text-primary hover:underline">chogop@nm-aist.ac.tz</a>
               </p>
             )}
           </section>

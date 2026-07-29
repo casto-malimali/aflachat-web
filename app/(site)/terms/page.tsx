@@ -100,7 +100,7 @@ export default function Terms() {
           <p className="text-zinc-600 mb-4">
             {termsContent[6].desc}
           </p>
-          <a href="mailto:pamsekela@gmail.com" className="text-primary font-bold hover:underline">pamsekela@gmail.com</a>
+          <a href="mailto:chogop@nm-aist.ac.tz" className="text-primary font-bold hover:underline">chogop@nm-aist.ac.tz</a>
         </section>
       </div>
     </div>
