@@ -87,9 +87,10 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">Dashboard overview</h2>
-          <p className="text-sm text-slate-500">Analytics across the website and mobile app.</p>
+        <div className="max-w-2xl">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest-moss-700">Operations pulse</p>
+          <h2 className="text-2xl font-bold tracking-[-0.03em] text-slate-950 sm:text-3xl">What is happening across AflaChat</h2>
+          <p className="mt-1 text-sm text-slate-500">Live engagement, answer quality and access signals from the website and mobile apps.</p>
         </div>
         <button
           onClick={refreshAll}
@@ -106,7 +107,7 @@ export default function OverviewPage() {
       ) : overview.error ? (
         <ErrorState message={overview.error} onRetry={overview.refetch} />
       ) : o ? (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <StatCard
             label="Sessions"
             value={fmtNum(o.sessions)}

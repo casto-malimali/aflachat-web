@@ -23,7 +23,8 @@ export function LineChart({
   series: Series[];
   height?: number;
 }) {
-  if (!data.length) return <Empty height={height} />;
+  const total = data.reduce((sum, row) => sum + series.reduce((s, item) => s + Number(row[item.key] ?? 0), 0), 0);
+  if (!data.length || total === 0) return <Empty height={height} />;
 
   return (
     <MuiLineChart
@@ -54,7 +55,7 @@ export function BarList({
   items: { label: string; value: number; color?: string }[];
   emptyLabel?: string;
 }) {
-  if (!items.length) return <p className="py-6 text-center text-sm text-slate-400">{emptyLabel}</p>;
+  if (!items.length || items.every((item) => item.value === 0)) return <Empty height={Math.max(160, items.length * 42)} label={emptyLabel} />;
 
   return (
     <MuiBarChart
@@ -80,6 +81,7 @@ export function Donut({
   size?: number;
 }) {
   const total = segments.reduce((a, s) => a + s.value, 0);
+  if (total === 0) return <Empty height={size} label="No traffic recorded yet" />;
 
   return (
     <MuiPieChart
@@ -99,10 +101,12 @@ export function Donut({
   );
 }
 
-function Empty({ height }: { height: number }) {
+function Empty({ height, label = "No activity in this range" }: { height: number; label?: string }) {
   return (
-    <div className="flex items-center justify-center text-sm text-slate-400" style={{ height }}>
-      No data in range yet
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-center" style={{ height }}>
+      <span className="mb-2 h-2 w-2 rounded-full bg-forest-moss-400" />
+      <p className="text-sm font-semibold text-slate-600">{label}</p>
+      <p className="mt-1 max-w-xs text-xs text-slate-400">Data will appear here as people use AflaChat.</p>
     </div>
   );
 }

@@ -38,7 +38,7 @@ type NavItem = {
 };
 
 const MAIN_NAV: NavItem[] = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard, description: "Analytics & KPIs" },
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, description: "Analytics & KPIs" },
   { href: "/admin/logs", label: "Logs", icon: ScrollText, description: "Sessions & activity" },
   { href: "/admin/feedback", label: "Feedback", icon: MessagesSquare, description: "Community feedback" },
   { href: "/admin/contact", label: "Contact", icon: MailPlus, description: "Form submissions" },
@@ -52,9 +52,16 @@ const ACCOUNT_NAV: NavItem[] = [
 
 const ALL_NAV = [...MAIN_NAV, ...ACCOUNT_NAV];
 
+/** The dashboard root must not match every nested `/admin/*` route. */
+function isNavActive(pathname: string, href: string): boolean {
+  return href === "/admin"
+    ? pathname === "/admin" || pathname === "/admin/"
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function pageTitle(pathname: string): string {
   // Longest-prefix match so nested routes (e.g. /admin/logs/123) still resolve.
-  const match = ALL_NAV.filter((n) => pathname === n.href || pathname.startsWith(`${n.href}/`)).sort(
+  const match = ALL_NAV.filter((n) => isNavActive(pathname, n.href)).sort(
     (a, b) => b.href.length - a.href.length,
   )[0];
   return match?.label ?? "Admin";
@@ -120,13 +127,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   if (!user) return <LoginScreen />;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="admin-canvas min-h-screen text-slate-900">
       <DesktopSidebar user={user} />
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
 
       <div className="md:pl-64">
         <Topbar user={user} onMenu={() => setDrawerOpen(true)} />
-        <main className="mx-auto max-w-6xl px-4 pb-24 pt-5 sm:px-6 md:pb-10 lg:px-8">
+        <main id="admin-content" className="mx-auto max-w-[90rem] px-4 pb-24 pt-6 sm:px-6 md:pb-12 lg:px-10">
           {children}
         </main>
       </div>
@@ -140,8 +147,15 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 function Brand({ subtitle = "Admin" }: { subtitle?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-400/20">
-        <Leaf className="h-5 w-5 text-emerald-300" />
+      <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white/95 p-1.5 shadow-sm ring-1 ring-white/20">
+        <Image
+          src="/images/aflachat-chat-icon.png"
+          alt="AflaChat logo"
+          width={32}
+          height={25}
+          className="h-auto w-full object-contain"
+          priority
+        />
       </span>
       <div className="leading-tight">
         <p className="text-sm font-bold text-white">AflaChat</p>
@@ -158,7 +172,7 @@ function NavSection({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
   return (
     <div className="space-y-1">
       {items.map(({ href, label, icon: Icon, description }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+        const active = isNavActive(pathname, href);
         return (
           <Link
             key={href}
@@ -166,19 +180,16 @@ function NavSection({ items, onNavigate }: { items: NavItem[]; onNavigate?: () =
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${active
-              ? "bg-emerald-500/15 text-white shadow-sm"
+              ? "bg-white text-forest-moss-900 shadow-sm"
               : "text-emerald-50/70 hover:bg-white/5 hover:text-white"
               }`}
           >
-            {active && (
-              <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-emerald-400" aria-hidden />
-            )}
             <Icon
-              className={`h-5 w-5 shrink-0 ${active ? "text-emerald-300" : "text-emerald-200/60 group-hover:text-emerald-200"}`}
+              className={`h-5 w-5 shrink-0 ${active ? "text-forest-moss-700" : "text-emerald-200/60 group-hover:text-emerald-200"}`}
             />
             <span className="flex flex-col">
               {label}
-              <span className="text-[11px] font-normal text-emerald-100/40">{description}</span>
+              <span className={`text-[11px] font-normal ${active ? "text-slate-500" : "text-emerald-100/40"}`}>{description}</span>
             </span>
           </Link>
         );
@@ -525,7 +536,7 @@ function BottomNav({ user }: { user: AdminUser }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
       {items.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+        const active = isNavActive(pathname, href);
         return (
           <Link
             key={href}

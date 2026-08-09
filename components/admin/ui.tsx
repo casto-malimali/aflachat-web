@@ -92,7 +92,7 @@ export function StatCard({
   trend?: { growth: number | null; label?: string };
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-lg hover:ring-slate-100 sm:p-5">
+    <article className="group relative overflow-hidden rounded-[1.25rem] border border-slate-200/70 bg-white/90 p-4 shadow-[0_10px_35px_-28px_rgba(15,62,44,.55)] backdrop-blur transition-all hover:-translate-y-0.5 hover:border-forest-moss-200 hover:shadow-[0_18px_45px_-28px_rgba(15,62,44,.5)] sm:p-5">
       {/* Accent glow */}
       <span
         className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-[0.07] blur-xl transition-opacity group-hover:opacity-[0.12]"
@@ -100,12 +100,12 @@ export function StatCard({
         aria-hidden
       />
       <span
-        className="absolute inset-x-0 top-0 h-1 opacity-80"
+        className="absolute bottom-0 left-0 top-0 w-1 opacity-80"
         style={{ background: accent }}
         aria-hidden
       />
       <div className="relative flex items-start justify-between gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</span>
         {Icon && (
           <span
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105"
@@ -120,7 +120,7 @@ export function StatCard({
         {trend && <TrendBadge growth={trend.growth} label={trend.label} />}
       </div>
       {sub && <div className="relative mt-0.5 text-xs text-slate-400">{sub}</div>}
-    </div>
+    </article>
   );
 }
 
@@ -137,7 +137,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md ${className}`}
+      className={`rounded-[1.4rem] border border-slate-200/70 bg-white/90 shadow-[0_14px_45px_-36px_rgba(15,62,44,.6)] backdrop-blur ${className}`}
     >
       {(title || action) && (
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3.5 sm:px-5">
