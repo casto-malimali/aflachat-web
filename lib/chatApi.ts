@@ -29,12 +29,15 @@ export interface OfflineFaqEntry {
   keywords: string[];
 }
 
-export async function startSession(language: Lang): Promise<string> {
+export async function startSession(
+  language: Lang,
+  location?: { lat: number; lng: number; accuracy?: number }
+): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/session/start`, {
     method: "POST",
     headers: headers(),
     // Tag the source so the admin dashboard can split "website vs app" traffic.
-    body: JSON.stringify({ language, platform: "web" }),
+    body: JSON.stringify({ language, platform: "web", location }),
   });
   if (!res.ok) throw new Error(`session/start failed: ${res.status}`);
   const json = await res.json();

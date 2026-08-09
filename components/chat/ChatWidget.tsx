@@ -87,6 +87,7 @@ export default function ChatWidget() {
   const [online, setOnline] = useState(true);
 
   const sessionId = useRef<string | null>(null);
+  const userLocation = useRef<{ lat: number; lng: number; accuracy?: number } | undefined>(undefined);
   const pack = useRef<OfflineFaqEntry[]>([]);
   const abort = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -191,10 +192,24 @@ export default function ChatWidget() {
     } else {
       setSuggestions(aiSuggestions);
     }
-  }, [input, aiSuggestions, lang]);
-
-
-
+  }, [input, aiSuggestions, lang]);  // ── Geolocation ──
+  useEffect(() => {
+    if (open && !userLocation.current && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLocation.current = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          };
+        },
+        (error) => {
+          console.warn("Geolocation query failed or rejected:", error.message);
+        },
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+      );
+    }
+  }, [open]);
   // ── Focus the composer when opening ──
   useEffect(() => {
     if (open) {
@@ -257,7 +272,7 @@ export default function ChatWidget() {
       }
 
       try {
-        if (!sessionId.current) sessionId.current = await startSession(lang);
+        if (!sessionId.current) sessionId.current = await startSession(lang, userLocation.current);
         const res = await sendChat(sessionId.current, lang, message);
         const answer = (res.answer ?? "").trim();
         setLoading(false);
