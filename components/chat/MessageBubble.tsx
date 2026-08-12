@@ -96,6 +96,7 @@ function MessageBubbleBase({ msg, isLast, labels, onRegenerate, onFeedback }: Me
             <IconAction
               label={labels.helpful}
               active={msg.feedback === "up"}
+              variant="up"
               onClick={() => onFeedback("up")}
             >
               <ThumbsUp size={14} />
@@ -103,6 +104,7 @@ function MessageBubbleBase({ msg, isLast, labels, onRegenerate, onFeedback }: Me
             <IconAction
               label={labels.notHelpful}
               active={msg.feedback === "down"}
+              variant="down"
               onClick={() => onFeedback("down")}
             >
               <ThumbsDown size={14} />
@@ -117,14 +119,23 @@ function MessageBubbleBase({ msg, isLast, labels, onRegenerate, onFeedback }: Me
 function IconAction({
   label,
   active,
+  variant,
   onClick,
   children,
 }: {
   label: string;
   active?: boolean;
+  variant?: "up" | "down";
   onClick: () => void;
   children: React.ReactNode;
 }) {
+  const activeClass =
+    variant === "up"
+      ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+      : variant === "down"
+        ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400"
+        : "bg-secondary/15 text-secondary";
+
   return (
     <button
       type="button"
@@ -134,7 +145,7 @@ function IconAction({
       onClick={onClick}
       className={cn(
         "flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-        active ? "bg-secondary/15 text-secondary" : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+        active ? activeClass : "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
       )}
     >
       {children}
