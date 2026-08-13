@@ -36,7 +36,7 @@ const TEXT: Record<Lang, {
     subtitle: "Ask about aflatoxin",
     placeholder: "Type your question…",
     welcome: "Hello! I'm the AflaChat Assistant. Ask me anything about aflatoxin.",
-    disclaimer: "AI answers may have limitations. Consult a local expert for specific advice.",
+    disclaimer: "AI-generated answers may have limitations. Consult an expert for precise advice.",
     offlineLocal: "You're offline — answer from saved guidance:",
     offlineNone: "You're offline and I don't have a saved answer for that. Please reconnect and try again.",
     error: "Something went wrong. Please try again.",
