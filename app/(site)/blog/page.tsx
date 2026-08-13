@@ -1,66 +1,110 @@
-"use client";
-
-import React from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useLanguage } from "@/components/LanguageContext";
-import { BookOpen, Sparkles, ArrowLeft } from "lucide-react";
+import { BookOpen } from "lucide-react";
+import { PostCard } from "@/components/blog/PostCard";
+import { Pagination } from "@/components/blog/Pagination";
+import {
+  SITE_URL,
+  listCategories,
+  listPosts,
+} from "@/lib/blog/serverApi";
 
-export default function Blog() {
-  const { language } = useLanguage();
-  const activeLang = language === "sw" ? "sw" : "en";
+// Statically rendered and revalidated — the listing is the same for everyone,
+// so it should not be re-fetched per request.
+// Next requires segment config to be a literal it can statically analyse —
+// an imported constant is rejected at build time. Keep in step with
+// REVALIDATE_SECONDS in lib/blog/serverApi.ts.
+export const revalidate = 300;
 
-  const content = {
-    en: {
-      badge: "Coming Soon",
-      title: "AflaChat Blog",
-      subtitle: "We are preparing agricultural insights, research articles, and crop preservation guides to help you protect your harvest from aflatoxin. Stay tuned!",
-      cta: "Back to Home",
-    },
-    sw: {
-      badge: "Inakuja Hivi Karibuni",
-      title: "Bloku ya AflaChat",
-      subtitle: "Tunatayarisha makala za kilimo, utafiti, na miongozo ya uhifadhi wa mazao ili kukusaidia kulinda mavuno yako dhidi ya sumukuvu. Kaa mkao wa kula!",
-      cta: "Rudi Mwanzo",
-    },
-  }[activeLang];
+export const metadata: Metadata = {
+  title: "Blog",
+  description:
+    "Agricultural insights, research articles and crop preservation guides to help you protect your harvest from aflatoxin.",
+  alternates: { canonical: `${SITE_URL}/blog` },
+  openGraph: {
+    title: "AflaChat Blog",
+    description:
+      "Agricultural insights, research articles and crop preservation guides to help you protect your harvest from aflatoxin.",
+    url: `${SITE_URL}/blog`,
+    type: "website",
+  },
+};
+
+const PER_PAGE = 9;
+
+export default async function BlogIndex({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [list, categories] = await Promise.all([
+    listPosts({ page, limit: PER_PAGE }),
+    listCategories(),
+  ]);
 
   return (
-    <div className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-zinc-50 py-24 px-6">
-      {/* Decorative glowing background gradients */}
-      <div className="absolute top-1/4 left-1/4 -z-10 w-96 h-96 rounded-full bg-secondary/10 blur-[100px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 -z-10 w-96 h-96 rounded-full bg-primary/5 blur-[100px] animate-pulse" style={{ animationDelay: "2s" }} />
-
-      <div className="max-w-xl w-full text-center relative z-10 animate-fade-up">
-        {/* Animated Badge */}
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-xs font-bold uppercase tracking-widest mb-6 animate-bounce">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{content.badge}</span>
-        </div>
-
-        {/* Coming Soon Box (Glassmorphic) */}
-        <div className="bg-white/80 backdrop-blur-md border border-zinc-200/80 rounded-3xl p-8 md:p-12 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-primary mb-6 shadow-sm border border-primary/10">
-            <BookOpen className="w-8 h-8" />
+    <div className="bg-zinc-50">
+      <header className="border-b border-zinc-200 bg-white py-14">
+        <div className="mx-auto max-w-5xl px-6 text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
+            <BookOpen className="h-7 w-7" />
           </div>
-          
-          <h1 className="font-heading text-4xl md:text-5xl font-black text-zinc-900 mb-6 tracking-tight">
-            {content.title}
+          <h1 className="font-heading text-4xl font-black tracking-tight text-zinc-900 md:text-5xl">
+            AflaChat Blog
           </h1>
-          
-          <div className="rule-accent mx-auto mb-6 bg-primary" />
-          
-          <p className="text-zinc-600 text-base md:text-lg leading-relaxed mb-8">
-            {content.subtitle}
+          <p className="mx-auto mt-4 max-w-2xl text-zinc-600">
+            Agricultural insights, research and crop preservation guides to help you protect your
+            harvest from aflatoxin.
           </p>
-
-          <Link
-            href="/"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md font-semibold tracking-tight transition-all hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none bg-primary text-primary-foreground hover:bg-primary-hover shadow-md shadow-primary/20 hover:shadow-lg h-14 px-7 text-base cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {content.cta}
-          </Link>
         </div>
+      </header>
+
+      {categories.length > 0 && (
+        <nav aria-label="Categories" className="border-b border-zinc-200 bg-white">
+          <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-2 px-6 py-4">
+            <span className="rounded-full bg-primary px-3.5 py-1.5 text-sm font-semibold text-white">
+              All
+            </span>
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                href={`/blog/category/${c.slug}`}
+                className="rounded-full px-3.5 py-1.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-100"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
+
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        {list.posts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-zinc-300 bg-white py-20 text-center">
+            <BookOpen className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
+            <p className="font-heading text-xl font-bold text-zinc-700">No articles yet</p>
+            <p className="mt-1 text-sm text-zinc-500">
+              We are preparing guides on protecting your harvest. Check back soon.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {list.posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+            <Pagination
+              basePath="/blog"
+              page={list.page}
+              total={list.total}
+              limit={list.limit}
+            />
+          </>
+        )}
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ import {
   Leaf,
   MessagesSquare,
   MailPlus,
+  FileText,
 } from "lucide-react";
 import { api, type Overview } from "@/lib/adminApi";
 import { useAuth } from "@/components/admin/AuthContext";
@@ -42,6 +43,7 @@ const MAIN_NAV: NavItem[] = [
   { href: "/admin/logs", label: "Logs", icon: ScrollText, description: "Sessions & activity" },
   { href: "/admin/feedback", label: "Feedback", icon: MessagesSquare, description: "Community feedback" },
   { href: "/admin/contact", label: "Contact", icon: MailPlus, description: "Form submissions" },
+  { href: "/admin/blog", label: "Blog", icon: FileText, description: "Articles & authoring" },
   { href: "/admin/users", label: "Users", icon: Users, description: "Manage accounts", adminOnly: true },
 ];
 
