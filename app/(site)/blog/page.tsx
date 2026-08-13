@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { PostCard } from "@/components/blog/PostCard";
 import { Pagination } from "@/components/blog/Pagination";
+import { PageHero } from "@/components/ui/PageHero";
 import {
   SITE_URL,
   listCategories,
@@ -47,20 +48,12 @@ export default async function BlogIndex({
 
   return (
     <div className="bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white py-14">
-        <div className="mx-auto max-w-5xl px-6 text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
-            <BookOpen className="h-7 w-7" />
-          </div>
-          <h1 className="font-heading text-4xl font-black tracking-tight text-zinc-900 md:text-5xl">
-            AflaChat Blog
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-zinc-600">
-            Agricultural insights, research and crop preservation guides to help you protect your
-            harvest from aflatoxin.
-          </p>
-        </div>
-      </header>
+      <PageHero
+        title="AflaChat Blog"
+        subtitle="Agricultural insights, research and crop preservation guides to help you protect your harvest from aflatoxin."
+        image="/images/2149142834.jpg"
+        imageAlt="Maize harvest being sorted, representing safe post-harvest handling"
+      />
 
       {categories.length > 0 && (
         <nav aria-label="Categories" className="border-b border-zinc-200 bg-white">

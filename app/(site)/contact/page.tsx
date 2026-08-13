@@ -5,6 +5,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
+import { PageHero } from "@/components/ui/PageHero";
 import { submitContact } from "@/lib/contactApi";
 
 export default function Contact() {
@@ -33,16 +34,15 @@ export default function Contact() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-20">
-      <div className="mb-16 animate-fade-up">
-        <div className="rule-accent mb-4" />
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">{t.contact.title}</h1>
-        <p className="text-xl text-zinc-600 max-w-2xl">
-          {t.contact.subtitle}
-        </p>
-      </div>
+    <div>
+      <PageHero
+        title={t.contact.title}
+        subtitle={t.contact.subtitle}
+        image="/images/41468.jpg"
+        imageAlt="Farmer inspecting maize, representing the communities AflaChat supports"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <div className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* Contact Info */}
         <div className="space-y-12 animate-fade-up [animation-delay:100ms]">
           <div className="space-y-8">
