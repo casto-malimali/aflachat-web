@@ -105,30 +105,7 @@
   /* sans display */
 }
 
-/* Dark palette — opt-in: add the `dark` class to <html> to activate. Shipped
-   light-only today (nothing toggles it); kept here so dark mode is a 1-line
-   switch later without touching components. */
-.dark {
-  --color-primary: #34d399;
-  --color-primary-hover: #6ee7b7;
-  --color-primary-foreground: #022c22;
-  --color-accent: #064e3b;
-  --color-accent-foreground: #a7f3d0;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #f87171;
-  --color-info: #38bdf8;
-  --color-background: #0a0a0a;
-  --color-surface: #171717;
-  --color-surface-2: #262626;
-  --color-border: #2a2a2a;
-  --color-border-strong: #3f3f46;
-  --color-foreground: #fafafa;
-  --color-muted: #262626;
-  --color-muted-foreground: #a1a1aa;
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-}
+
 
 body {
   background: var(--background);

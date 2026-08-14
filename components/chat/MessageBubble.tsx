@@ -131,9 +131,9 @@ function IconAction({
 }) {
   const activeClass =
     variant === "up"
-      ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+      ? "bg-emerald-50 text-emerald-600"
       : variant === "down"
-        ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400"
+        ? "bg-rose-50 text-rose-600"
         : "bg-secondary/15 text-secondary";
 
   return (
