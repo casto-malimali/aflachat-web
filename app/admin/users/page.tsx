@@ -117,6 +117,7 @@ export default function UsersPage() {
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+                    <th className="w-12 px-5 py-2.5 font-medium text-center">SN</th>
                     <th className="px-5 py-2.5 font-medium">User</th>
                     <th className="px-5 py-2.5 font-medium">Role</th>
                     <th className="px-5 py-2.5 font-medium">Status</th>
@@ -125,8 +126,11 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {users.map((u) => (
+                  {users.map((u, idx) => (
                     <tr key={u.id} className="transition-colors hover:bg-slate-50/60">
+                      <td className="px-5 py-3 text-center text-xs font-semibold tabular-nums text-slate-400">
+                        {idx + 1}
+                      </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <Avatar name={u.name} size={38} />
@@ -166,10 +170,13 @@ export default function UsersPage() {
 
             {/* Mobile cards */}
             <ul className="space-y-3 md:hidden">
-              {users.map((u) => (
+              {users.map((u, idx) => (
                 <li key={u.id} className="rounded-xl border border-slate-100 p-3.5">
                   <div className="flex items-center gap-3">
-                    <Avatar name={u.name} size={42} />
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500 tabular-nums">
+                      {idx + 1}
+                    </span>
+                    <Avatar name={u.name} size={40} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-slate-900">
                         {u.name}

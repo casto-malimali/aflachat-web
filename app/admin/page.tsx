@@ -16,6 +16,9 @@ import { api } from "@/lib/adminApi";
 import { useAdminData } from "@/components/admin/useAdmin";
 import { useLiveEvent } from "@/components/admin/LiveContext";
 import { BarList, Donut, LineChart } from "@/components/admin/charts";
+import { TopicWordCloud } from "@/components/admin/TopicWordCloud";
+import { UserLocationMap } from "@/components/admin/UserLocationMap";
+import { RegionSessionsTable } from "@/components/admin/RegionSessionsTable";
 import {
   calcGrowth,
   ErrorState,
@@ -52,6 +55,7 @@ export default function OverviewPage() {
   const languages = useAdminData(() => api.languages(), [], onAuthError);
   const topics = useAdminData(() => api.topics(), [], onAuthError);
   const quality = useAdminData(() => api.quality(), [], onAuthError);
+  const geo = useAdminData(() => api.geo(), [], onAuthError);
 
   const refreshAll = () => {
     overview.refetch();
@@ -59,6 +63,7 @@ export default function OverviewPage() {
     languages.refetch();
     topics.refetch();
     quality.refetch();
+    geo.refetch();
   };
 
   // Live: any of these means the numbers on this page just went stale.
@@ -248,6 +253,30 @@ export default function OverviewPage() {
           ) : null}
         </Panel>
       </div>
+
+      {/* Open Source Map — User Geolocation & Audience Hotspots */}
+      <UserLocationMap
+        data={geo.data}
+        loading={geo.loading}
+        error={geo.error}
+        onRetry={geo.refetch}
+      />
+
+      {/* Regional Sessions Breakdown Table */}
+      <RegionSessionsTable
+        data={geo.data}
+        loading={geo.loading}
+        error={geo.error}
+        onRetry={geo.refetch}
+      />
+
+      {/* Word Cloud & Topics Table */}
+      <TopicWordCloud
+        topics={topics.data}
+        loading={topics.loading}
+        error={topics.error}
+        onRetry={topics.refetch}
+      />
     </div>
   );
 }

@@ -6,7 +6,10 @@ import { apiRequest, AuthError } from "./http";
 /** Re-exported under the historical name so existing call sites keep working. */
 export const AdminAuthError = AuthError;
 
-const adminFetch = <T>(path: string) => apiRequest<T>(`/api/analytics${path}`);
+const adminFetch = <T>(
+  path: string,
+  opts?: { method?: string; body?: unknown; anonymous?: boolean },
+) => apiRequest<T>(`/api/analytics${path}`, opts);
 
 // ── Response shapes ───────────────────────────────────────────────────────────
 export type PlatformSplit = { web: number; android: number; ios: number; other: number };
@@ -105,6 +108,25 @@ export interface UnansweredRow {
   createdAt: string;
 }
 
+export interface GeoCell {
+  cell: string;
+  count: number;
+  lat: number;
+  lng: number;
+  swCount?: number;
+  enCount?: number;
+  webCount?: number;
+  appCount?: number;
+  latestSessionAt?: string;
+  region?: string;
+}
+
+export interface GeoAnalytics {
+  sessionsWithLocation: number;
+  totalSessions?: number;
+  cells: GeoCell[];
+}
+
 /** A submission from the public Contact page (POST /api/contact on the backend). */
 export interface ContactSubmission {
   id: string;
@@ -124,6 +146,7 @@ export const api = {
   topics: () => adminFetch<{ topics: Topic[] }>("/topics").then((r) => r.topics),
   quality: () => adminFetch<Quality>("/quality"),
   platforms: () => adminFetch<PlatformSplit>("/platforms"),
+  geo: () => adminFetch<GeoAnalytics>("/geo"),
   sessions: (limit = 200) =>
     adminFetch<{ sessions: SessionRow[] }>(`/sessions?limit=${limit}`).then((r) => r.sessions),
   sessionDetail: (id: string) => adminFetch<SessionDetail>(`/sessions/${id}`),
@@ -131,6 +154,11 @@ export const api = {
     adminFetch<{ feedback: CommunityFeedbackRow[] }>(`/feedback?limit=${limit}`).then(
       (r) => r.feedback,
     ),
+  deleteFeedback: (createdAt: string, message?: string) =>
+    adminFetch<{ ok: boolean }>("/feedback", {
+      method: "DELETE",
+      body: { createdAt, message },
+    }),
   events: (limit = 200) =>
     adminFetch<{ events: OfflineEventRow[] }>(`/events?limit=${limit}`).then((r) => r.events),
   unanswered: () =>
@@ -145,4 +173,8 @@ export const api = {
       method: "PATCH",
       body: { status },
     }).then((r) => r.submission),
+  deleteContactSubmission: (id: string) =>
+    apiRequest<{ ok: boolean }>(`/api/contact/submissions/${id}`, {
+      method: "DELETE",
+    }),
 };

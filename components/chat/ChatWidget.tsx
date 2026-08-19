@@ -18,6 +18,7 @@ import {
 } from "@/lib/chatApi";
 import { useFocusTrap } from "./useFocusTrap";
 import { suggestBestFaqs } from "@/lib/offlineSlm";
+import { autoCollectLocation, getCachedLocation } from "@/lib/location";
 import { MessageBubble, type Msg } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { Composer } from "./Composer";
@@ -120,6 +121,17 @@ export default function ChatWidget() {
       setMessages([{ id: uid(), role: "ai", content: TEXT[lang].welcome }]);
       setAiSuggestions(INITIAL_SUGGESTIONS[lang]);
     }
+
+    // Auto-collect location (asks for GPS, falls back silently to IP if declined)
+    autoCollectLocation(true)
+      .then((loc) => {
+        if (loc) {
+          userLocation.current = { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy };
+        }
+      })
+      .catch(() => {
+        /* best effort */
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -272,6 +284,10 @@ export default function ChatWidget() {
       }
 
       try {
+        if (!userLocation.current) {
+          const cached = getCachedLocation();
+          if (cached) userLocation.current = { lat: cached.lat, lng: cached.lng, accuracy: cached.accuracy };
+        }
         if (!sessionId.current) sessionId.current = await startSession(lang, userLocation.current);
         const res = await sendChat(sessionId.current, lang, message);
         const answer = (res.answer ?? "").trim();

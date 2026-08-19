@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { RefreshCw, X, Smartphone, Globe } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  RefreshCw,
+  Smartphone,
+  X,
+} from "lucide-react";
 import {
   api,
+  type OfflineEventRow,
   type SessionDetail,
   type SessionRow,
+  type UnansweredRow,
 } from "@/lib/adminApi";
 import { useAdminData } from "@/components/admin/useAdmin";
 import { useLiveEvent } from "@/components/admin/LiveContext";
@@ -83,10 +92,74 @@ function RefreshButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+function PaginationControls({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+}) {
+  if (totalItems <= pageSize) return null;
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
+      <div>
+        Showing <span className="font-semibold text-slate-800">{start}</span>–
+        <span className="font-semibold text-slate-800">{end}</span> of{" "}
+        <span className="font-semibold text-slate-800">{totalItems}</span> entries
+      </div>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 1}
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+          <span>Prev</span>
+        </button>
+        <span className="px-2 font-medium text-slate-700">
+          Page {page} of {totalPages}
+        </span>
+        <button
+          type="button"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 font-medium text-slate-700 shadow-2xs hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <span>Next</span>
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Sessions ──────────────────────────────────────────────────────────────────
 function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
-  const { data, loading, error, refetch } = useAdminData(() => api.sessions(200), [], onAuthError);
+  const { data, loading, error, refetch } = useAdminData(() => api.sessions(300), [], onAuthError);
   useLiveEvent(["session.created", "session.ended", "message.created"], refetch);
+
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
+  const totalItems = data?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedData = useMemo(() => {
+    if (!data) return [];
+    const start = (currentPage - 1) * pageSize;
+    return data.slice(start, start + pageSize);
+  }, [data, currentPage, pageSize]);
 
   return (
     <Panel title="Recent sessions" action={<RefreshButton onClick={refetch} />} className="overflow-hidden">
@@ -103,6 +176,7 @@ function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+                  <th className="w-12 px-5 py-2.5 font-medium text-center">SN</th>
                   <th className="px-5 py-2.5 font-medium">Started</th>
                   <th className="px-5 py-2.5 font-medium">Source</th>
                   <th className="px-5 py-2.5 font-medium">Lang</th>
@@ -112,67 +186,87 @@ function SessionsTab({ onOpen }: { onOpen: (id: string) => void }) {
                 </tr>
               </thead>
               <tbody>
-                {data.map((s: SessionRow) => (
-                  <tr
-                    key={s.id}
-                    onClick={() => onOpen(s.id)}
-                    className="cursor-pointer border-b border-slate-50 transition-colors last:border-0 hover:bg-forest-moss-50/50"
-                  >
-                    <td className="px-5 py-3 text-slate-700" title={fmtDateTime(s.startedAt)}>
-                      {fmtRelative(s.startedAt)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <Tag value={s.source === "web" ? "web" : s.source} />
-                    </td>
-                    <td className="px-5 py-3">
-                      <Tag value={s.language} />
-                    </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-slate-700">
-                      {s.messages}
-                      <span className="text-slate-400"> / {s.userMessages}</span>
-                    </td>
-                    <td className="px-5 py-3 text-right tabular-nums text-slate-500">
-                      {fmtDuration(s.durationMs)}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-slate-400">
-                      {s.deviceHash ? s.deviceHash.slice(0, 10) : "—"}
-                    </td>
-                  </tr>
-                ))}
+                {paginatedData.map((s: SessionRow, index: number) => {
+                  const sn = (currentPage - 1) * pageSize + index + 1;
+                  return (
+                    <tr
+                      key={s.id}
+                      onClick={() => onOpen(s.id)}
+                      className="cursor-pointer border-b border-slate-50 transition-colors last:border-0 hover:bg-forest-moss-50/50"
+                    >
+                      <td className="px-5 py-3 text-center text-xs font-semibold tabular-nums text-slate-400">
+                        {sn}
+                      </td>
+                      <td className="px-5 py-3 text-slate-700" title={fmtDateTime(s.startedAt)}>
+                        {fmtRelative(s.startedAt)}
+                      </td>
+                      <td className="px-5 py-3">
+                        <Tag value={s.source === "web" ? "web" : s.source} />
+                      </td>
+                      <td className="px-5 py-3">
+                        <Tag value={s.language} />
+                      </td>
+                      <td className="px-5 py-3 text-right tabular-nums text-slate-700">
+                        {s.messages}
+                        <span className="text-slate-400"> / {s.userMessages}</span>
+                      </td>
+                      <td className="px-5 py-3 text-right tabular-nums text-slate-500">
+                        {fmtDuration(s.durationMs)}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs text-slate-400">
+                        {s.deviceHash ? s.deviceHash.slice(0, 10) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile: tappable cards */}
           <ul className="space-y-2.5 sm:hidden">
-            {data.map((s: SessionRow) => (
-              <li key={s.id}>
-                <button
-                  onClick={() => onOpen(s.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors active:bg-forest-moss-50/60"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-moss-50 text-forest-moss-600">
-                    {s.source === "web" ? <Globe className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Tag value={s.source === "web" ? "web" : s.source} />
-                      <Tag value={s.language} />
+            {paginatedData.map((s: SessionRow, index: number) => {
+              const sn = (currentPage - 1) * pageSize + index + 1;
+              return (
+                <li key={s.id}>
+                  <button
+                    onClick={() => onOpen(s.id)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors active:bg-forest-moss-50/60"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500 tabular-nums">
+                      {sn}
+                    </span>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-forest-moss-50 text-forest-moss-600">
+                      {s.source === "web" ? <Globe className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Tag value={s.source === "web" ? "web" : s.source} />
+                        <Tag value={s.language} />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-400" title={fmtDateTime(s.startedAt)}>
+                        {fmtRelative(s.startedAt)}
+                      </p>
                     </div>
-                    <p className="mt-1 text-xs text-slate-400" title={fmtDateTime(s.startedAt)}>
-                      {fmtRelative(s.startedAt)}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-sm font-semibold tabular-nums text-slate-700">
-                      {s.messages} <span className="font-normal text-slate-400">msgs</span>
-                    </p>
-                    <p className="text-xs tabular-nums text-slate-400">{fmtDuration(s.durationMs)}</p>
-                  </div>
-                </button>
-              </li>
-            ))}
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums text-slate-700">
+                        {s.messages} <span className="font-normal text-slate-400">msgs</span>
+                      </p>
+                      <p className="text-xs tabular-nums text-slate-400">{fmtDuration(s.durationMs)}</p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
+
+          <PaginationControls
+            page={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
+          />
         </>
       )}
     </Panel>
@@ -265,8 +359,22 @@ function TranscriptDrawer({ id, onClose }: { id: string; onClose: () => void }) 
 
 // ── Offline events ────────────────────────────────────────────────────────────
 function EventsTab() {
-  const { data, loading, error, refetch } = useAdminData(() => api.events(200), [], onAuthError);
+  const { data, loading, error, refetch } = useAdminData(() => api.events(300), [], onAuthError);
   useLiveEvent("offline.created", refetch);
+
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
+  const totalItems = data?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedData = useMemo(() => {
+    if (!data) return [];
+    const start = (currentPage - 1) * pageSize;
+    return data.slice(start, start + pageSize);
+  }, [data, currentPage, pageSize]);
+
   return (
     <Panel title="Offline attempts" action={<RefreshButton onClick={refetch} />}>
       {loading ? (
@@ -276,17 +384,35 @@ function EventsTab() {
       ) : !data?.length ? (
         <Empty />
       ) : (
-        <ul className="divide-y divide-gray-50">
-          {data.map((e, i) => (
-            <li key={i} className="flex items-center justify-between py-2.5 text-sm">
-              <span className="text-gray-700">{e.region || "Unknown region"}</span>
-              <span className="flex items-center gap-3 text-xs text-gray-400">
-                {e.deviceHash && <span className="font-mono">{e.deviceHash.slice(0, 10)}</span>}
-                <span title={fmtDateTime(e.createdAt)}>{fmtRelative(e.createdAt)}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-gray-50">
+            {paginatedData.map((e: OfflineEventRow, i: number) => {
+              const sn = (currentPage - 1) * pageSize + i + 1;
+              return (
+                <li key={i} className="flex items-center justify-between py-2.5 text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-500 tabular-nums">
+                      {sn}
+                    </span>
+                    <span className="text-gray-800 font-medium">{e.region || "Unknown region"}</span>
+                  </div>
+                  <span className="flex items-center gap-3 text-xs text-gray-400">
+                    {e.deviceHash && <span className="font-mono">{e.deviceHash.slice(0, 10)}</span>}
+                    <span title={fmtDateTime(e.createdAt)}>{fmtRelative(e.createdAt)}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <PaginationControls
+            page={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </Panel>
   );
@@ -296,6 +422,20 @@ function EventsTab() {
 function UnansweredTab() {
   const { data, loading, error, refetch } = useAdminData(() => api.unanswered(), [], onAuthError);
   useLiveEvent("unanswered.created", refetch);
+
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
+  const totalItems = data?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(page, totalPages);
+
+  const paginatedData = useMemo(() => {
+    if (!data) return [];
+    const start = (currentPage - 1) * pageSize;
+    return data.slice(start, start + pageSize);
+  }, [data, currentPage, pageSize]);
+
   return (
     <Panel title="Unanswered queries" action={<RefreshButton onClick={refetch} />}>
       {loading ? (
@@ -305,17 +445,33 @@ function UnansweredTab() {
       ) : !data?.length ? (
         <Empty />
       ) : (
-        <ul className="space-y-2">
-          {data.map((u, i) => (
-            <li key={i} className="flex items-start gap-3 rounded-lg border border-gray-100 p-3 text-sm">
-              <Tag value={u.language} />
-              <span className="flex-1 text-gray-800">{u.text}</span>
-              <span className="shrink-0 text-xs text-gray-400" title={fmtDateTime(u.createdAt)}>
-                {fmtRelative(u.createdAt)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-2">
+            {paginatedData.map((u: UnansweredRow, i: number) => {
+              const sn = (currentPage - 1) * pageSize + i + 1;
+              return (
+                <li key={i} className="flex items-start gap-3 rounded-lg border border-gray-100 p-3 text-sm">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-500 tabular-nums mt-0.5">
+                    {sn}
+                  </span>
+                  <Tag value={u.language} />
+                  <span className="flex-1 text-gray-800">{u.text}</span>
+                  <span className="shrink-0 text-xs text-gray-400" title={fmtDateTime(u.createdAt)}>
+                    {fmtRelative(u.createdAt)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <PaginationControls
+            page={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </Panel>
   );

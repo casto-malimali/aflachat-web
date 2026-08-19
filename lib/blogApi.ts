@@ -151,7 +151,20 @@ export const blogApi = {
     }),
 
   listCategories: () => apiRequest<{ categories: Category[] }>(`${ADMIN}/categories`),
+  createCategory: (body: { name: string; slug?: string; description?: string | null; parentId?: string | null }) =>
+    apiRequest<{ category: Category }>(`${ADMIN}/categories`, { method: "POST", body }),
+  updateCategory: (
+    id: string,
+    body: { name?: string; slug?: string; description?: string | null; parentId?: string | null },
+  ) => apiRequest<{ category: Category }>(`${ADMIN}/categories/${id}`, { method: "PATCH", body }),
+  deleteCategory: (id: string) =>
+    apiRequest<{ ok: true }>(`${ADMIN}/categories/${id}`, { method: "DELETE" }),
+
   listTags: () => apiRequest<{ tags: Tag[] }>(`${ADMIN}/tags`),
+  createTag: (body: { name: string; slug?: string }) =>
+    apiRequest<{ tag: Tag }>(`${ADMIN}/tags`, { method: "POST", body }),
+  deleteTag: (id: string) =>
+    apiRequest<{ ok: true }>(`${ADMIN}/tags/${id}`, { method: "DELETE" }),
 
   listMedia: (page = 1, limit = 40) =>
     apiRequest<Paginated<Media> & { media: (Media & { url: string })[] }>(

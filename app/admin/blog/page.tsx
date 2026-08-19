@@ -2,10 +2,27 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { FileText, Plus, Search } from "lucide-react";
+import {
+  ExternalLink,
+  Eye,
+  FileText,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { useAdminData } from "@/components/admin/useAdmin";
-import { Badge, Button, EmptyState, ErrorState, Panel, Spinner, fmtRelative } from "@/components/admin/ui";
-import { blogApi, type PostStatus } from "@/lib/blogApi";
+import {
+  Badge,
+  Button,
+  EmptyState,
+  ErrorState,
+  Modal,
+  Panel,
+  Spinner,
+  fmtRelative,
+} from "@/components/admin/ui";
+import { blogApi, type Post, type PostStatus } from "@/lib/blogApi";
 
 const STATUS_FILTERS: { label: string; value: PostStatus | "" }[] = [
   { label: "All", value: "" },
@@ -22,14 +39,79 @@ const STATUS_TONE: Record<PostStatus, "forest" | "amber" | "slate"> = {
   ARCHIVED: "slate",
 };
 
+interface DeletePostModalProps {
+  post: Post;
+  onClose: () => void;
+  onDeleted: () => void;
+}
+
+function DeletePostModal({ post, onClose, onDeleted }: DeletePostModalProps) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleConfirm() {
+    setBusy(true);
+    setError(null);
+    try {
+      await blogApi.deletePost(post.id);
+      onDeleted();
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Delete blog post"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleConfirm}
+            loading={busy}
+            icon={Trash2}
+          >
+            Delete post
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-2">
+        <p className="text-sm text-zinc-600">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-zinc-900">&ldquo;{post.title}&rdquo;</span>?
+        </p>
+        <p className="text-xs text-zinc-500">
+          This post and all its revision history will be permanently deleted. This action cannot be undone.
+        </p>
+        {error && (
+          <p className="mt-2 rounded-lg bg-red-50 p-2.5 text-xs text-red-700">{error}</p>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 export default function BlogPostsPage() {
   const [status, setStatus] = useState<PostStatus | "">("");
   const [search, setSearch] = useState("");
   // Only committed on submit, so typing doesn't fire a request per keystroke.
   const [query, setQuery] = useState("");
+  const [deletingPost, setDeletingPost] = useState<Post | null>(null);
 
   const loader = useCallback(
-    () => blogApi.listPosts({ status: status || undefined, search: query || undefined, limit: 50 }),
+    () =>
+      blogApi.listPosts({
+        status: status || undefined,
+        search: query || undefined,
+        limit: 50,
+      }),
     [status, query],
   );
 
@@ -105,38 +187,106 @@ export default function BlogPostsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
-                  <th className="py-2 pr-4 font-semibold">Title</th>
-                  <th className="py-2 pr-4 font-semibold">Status</th>
-                  <th className="py-2 pr-4 font-semibold">Author</th>
-                  <th className="py-2 pr-4 font-semibold">Views</th>
-                  <th className="py-2 font-semibold">Updated</th>
+                  <th className="w-12 py-2.5 px-3 text-center font-semibold">Sn</th>
+                  <th className="py-2.5 pr-4 font-semibold">Title</th>
+                  <th className="py-2.5 pr-4 font-semibold">Status</th>
+                  <th className="py-2.5 pr-4 font-semibold">Author</th>
+                  <th className="py-2.5 pr-4 font-semibold">Views</th>
+                  <th className="py-2.5 pr-4 font-semibold">Updated</th>
+                  <th className="py-2.5 pl-4 pr-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {data.posts.map((post) => (
-                  <tr key={post.id} className="hover:bg-zinc-50">
-                    <td className="py-3 pr-4">
-                      <Link
-                        href={`/admin/blog/${post.id}`}
-                        className="font-semibold text-zinc-900 hover:text-forest-moss-700"
-                      >
-                        {post.title}
-                      </Link>
-                      <p className="text-xs text-zinc-400">/{post.slug}</p>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <Badge tone={STATUS_TONE[post.status]}>{post.status.toLowerCase()}</Badge>
-                    </td>
-                    <td className="py-3 pr-4 text-zinc-600">{post.author?.name ?? "—"}</td>
-                    <td className="py-3 pr-4 text-zinc-600">{post.viewCount}</td>
-                    <td className="py-3 text-zinc-500">{fmtRelative(post.updatedAt)}</td>
-                  </tr>
-                ))}
+                {data.posts.map((post, index) => {
+                  const isPublished = post.status === "PUBLISHED";
+                  const viewUrl = isPublished ? `/blog/${post.slug}` : `/admin/blog/${post.id}`;
+
+                  return (
+                    <tr key={post.id} className="transition-colors hover:bg-zinc-50/75">
+                      <td className="py-3 px-3 text-center text-xs font-semibold text-zinc-400 tabular-nums">
+                        {index + 1}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <Link
+                          href={`/admin/blog/${post.id}`}
+                          className="font-semibold text-zinc-900 hover:text-forest-moss-700 transition-colors"
+                        >
+                          {post.title}
+                        </Link>
+                        <p className="text-xs text-zinc-400">/{post.slug}</p>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <Badge tone={STATUS_TONE[post.status]}>{post.status.toLowerCase()}</Badge>
+                      </td>
+                      <td className="py-3 pr-4 text-zinc-600">{post.author?.name ?? "—"}</td>
+                      <td className="py-3 pr-4 text-zinc-600 tabular-nums">{post.viewCount}</td>
+                      <td className="py-3 pr-4 text-zinc-500">{fmtRelative(post.updatedAt)}</td>
+                      <td className="py-3 pl-4 pr-3 text-right">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          {/* View Post */}
+                          {isPublished ? (
+                            <a
+                              href={viewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`View live post "${post.title}"`}
+                              title="View live post"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 shadow-2xs hover:border-forest-moss-500 hover:bg-forest-moss-50 hover:text-forest-moss-700 transition-colors"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          ) : (
+                            <Link
+                              href={viewUrl}
+                              aria-label={`Preview/Edit post "${post.title}"`}
+                              title="Preview in editor"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 shadow-2xs hover:border-forest-moss-500 hover:bg-forest-moss-50 hover:text-forest-moss-700 transition-colors"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </Link>
+                          )}
+
+                          {/* Edit Post */}
+                          <Link
+                            href={`/admin/blog/${post.id}`}
+                            aria-label={`Edit post "${post.title}"`}
+                            title="Edit post"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 shadow-2xs hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Link>
+
+                          {/* Delete Post */}
+                          <button
+                            type="button"
+                            onClick={() => setDeletingPost(post)}
+                            aria-label={`Delete post "${post.title}"`}
+                            title="Delete post"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 shadow-2xs hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </Panel>
+
+      {deletingPost && (
+        <DeletePostModal
+          post={deletingPost}
+          onClose={() => setDeletingPost(null)}
+          onDeleted={() => {
+            setDeletingPost(null);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

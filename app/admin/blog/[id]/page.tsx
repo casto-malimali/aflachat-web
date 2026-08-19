@@ -7,30 +7,34 @@ import {
   CalendarClock,
   Eye,
   History,
-  Image as ImageIcon,
   Monitor,
+  Plus,
   Save,
   Send,
   Smartphone,
+  Sparkles,
   Undo2,
+  X,
+  Wand2,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Badge, Button, ErrorState, Panel, Spinner } from "@/components/admin/ui";
 import { BlogEditor } from "@/components/admin/blog/BlogEditor";
+import { CoverImageUploader } from "@/components/admin/blog/CoverImageUploader";
 import { MediaLibrary } from "@/components/admin/blog/MediaLibrary";
 import { RevisionPanel } from "@/components/admin/blog/RevisionPanel";
 import { PostContent } from "@/components/blog/PostContent";
 import {
   blogApi,
-  mediaUrl,
   type Category,
   type Media,
   type Post,
   type PostInput,
+  type PostStatus,
   type Tag,
 } from "@/lib/blogApi";
 import { EMPTY_DOC, type BlogDoc } from "@/lib/blog/nodes";
+import { extractPlainTextFromDoc, generateAutoSeo } from "@/lib/blog/autoSeo";
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -42,6 +46,13 @@ const SAVE_LABEL: Record<SaveState, string> = {
   saving: "Saving…",
   saved: "Saved",
   error: "Save failed",
+};
+
+const STATUS_TONE: Record<PostStatus, "forest" | "amber" | "slate"> = {
+  PUBLISHED: "forest",
+  SCHEDULED: "amber",
+  DRAFT: "slate",
+  ARCHIVED: "slate",
 };
 
 export default function BlogEditorPage() {
@@ -67,6 +78,19 @@ export default function BlogEditorPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
 
+  const [creatingCat, setCreatingCat] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatDesc, setNewCatDesc] = useState("");
+  const [catSaving, setCatSaving] = useState(false);
+  const [catError, setCatError] = useState<string | null>(null);
+
+  const [creatingTag, setCreatingTag] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [tagSaving, setTagSaving] = useState(false);
+  const [tagError, setTagError] = useState<string | null>(null);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [autoSeoNotification, setAutoSeoNotification] = useState<string | null>(null);
+
   const [mediaOpen, setMediaOpen] = useState(false);
   const [revisionsOpen, setRevisionsOpen] = useState(false);
   const [preview, setPreview] = useState<"off" | "desktop" | "mobile">("off");
@@ -75,7 +99,9 @@ export default function BlogEditorPage() {
   // Held in a ref so the autosave timer always sees the latest values without
   // being torn down and recreated on every keystroke.
   const latest = useRef({ title, doc, excerpt, metaTitle, metaDescription, coverImage, categoryIds, tagIds, scheduledFor });
-  latest.current = { title, doc, excerpt, metaTitle, metaDescription, coverImage, categoryIds, tagIds, scheduledFor };
+  useEffect(() => {
+    latest.current = { title, doc, excerpt, metaTitle, metaDescription, coverImage, categoryIds, tagIds, scheduledFor };
+  });
 
   // Taxonomy is small and rarely changes — fetch once for the whole screen.
   useEffect(() => {
@@ -152,45 +178,50 @@ export default function BlogEditorPage() {
     };
 
     try {
-      if (isNew || !post) {
+      if (isNew) {
         const { post: created } = await blogApi.createPost(body);
         setPost(created);
         setSaveState("saved");
-        // Swap the URL to the real id so later saves patch instead of creating
-        // a second post.
+        // Swap out the `/new` URL for the real ID without a reload, so
+        // future autosaves hit the update endpoint instead.
         router.replace(`/admin/blog/${created.id}`);
         return created;
       }
-
-      const { post: updated } = await blogApi.updatePost(post.id, body);
+      const { post: updated } = await blogApi.updatePost(params.id, body);
       setPost(updated);
       setSaveState("saved");
-      setError(null);
       return updated;
     } catch (err) {
       setError((err as Error).message);
       setSaveState("error");
       return null;
     }
-  }, [isNew, post, router]);
+  }, [isNew, params.id, router]);
 
-  // Autosave on a timer whenever there are unsaved changes.
+  // Mark dirty whenever local state changes so the author sees what's happening.
+  const markDirty = useCallback(() => {
+    setSaveState((prev) => (prev === "saving" ? "saving" : "dirty"));
+  }, []);
+
+  // Autosave: timer resets every 20s while dirty, quiet while idle.
   useEffect(() => {
     if (saveState !== "dirty") return;
-    const timer = setTimeout(() => void save(), AUTOSAVE_MS);
+    const timer = setTimeout(() => {
+      void save();
+    }, AUTOSAVE_MS);
     return () => clearTimeout(timer);
   }, [saveState, save]);
 
-  // Warn before leaving with unsaved work.
+  // Warn before closing the tab with unpersisted edits.
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (saveState === "dirty" || saveState === "saving") e.preventDefault();
+      if (saveState === "dirty" || saveState === "saving") {
+        e.preventDefault();
+      }
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [saveState]);
-
-  const markDirty = useCallback(() => setSaveState("dirty"), []);
 
   const publish = async () => {
     const saved = await save();
@@ -228,73 +259,195 @@ export default function BlogEditorPage() {
     }
   };
 
+  /** Auto-generate SEO metadata (Title, Description, Excerpt) and match Tags */
+  const handleAutoGenerateSeo = () => {
+    const bodyText = extractPlainTextFromDoc(doc);
+    if (!title.trim() && !bodyText.trim()) {
+      setError("Please enter a title, headline, or article body first to auto-generate SEO & tags.");
+      return;
+    }
+    setError(null);
+
+    const result = generateAutoSeo({
+      title,
+      doc,
+      categories,
+      tags,
+    });
+
+    if (result.metaTitle) setMetaTitle(result.metaTitle);
+    if (result.metaDescription) setMetaDescription(result.metaDescription);
+    if (result.excerpt) setExcerpt(result.excerpt);
+
+    // Auto-select matched categories
+    if (result.matchedCategoryIds.length > 0) {
+      setCategoryIds((prev) => Array.from(new Set([...prev, ...result.matchedCategoryIds])));
+    }
+
+    // Auto-select matched tags
+    if (result.matchedTagIds.length > 0) {
+      setTagIds((prev) => Array.from(new Set([...prev, ...result.matchedTagIds])));
+    }
+
+    // Propose recommended new tags
+    setSuggestedTags(result.suggestedTagNames);
+
+    markDirty();
+    setAutoSeoNotification(
+      "✨ SEO meta title, description, excerpt, and matching tags auto-captured!",
+    );
+    setTimeout(() => setAutoSeoNotification(null), 6000);
+  };
+
+  const handleAddCategory = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const name = newCatName.trim();
+    if (!name) return;
+    setCatSaving(true);
+    setCatError(null);
+    try {
+      const { category } = await blogApi.createCategory({
+        name,
+        description: newCatDesc.trim() || null,
+      });
+      setCategories((prev) => {
+        const next = [...prev.filter((c) => c.id !== category.id), category];
+        return next.sort((a, b) => a.name.localeCompare(b.name));
+      });
+      setCategoryIds((prev) => (prev.includes(category.id) ? prev : [...prev, category.id]));
+      markDirty();
+      setNewCatName("");
+      setNewCatDesc("");
+      setCreatingCat(false);
+    } catch (err: unknown) {
+      setCatError(err instanceof Error ? err.message : "Failed to create category");
+    } finally {
+      setCatSaving(false);
+    }
+  };
+
+  const handleAddTag = async (e?: React.FormEvent, customTagName?: string) => {
+    e?.preventDefault();
+    const name = (customTagName ?? newTagName).trim();
+    if (!name) return;
+    setTagSaving(true);
+    setTagError(null);
+    try {
+      const { tag } = await blogApi.createTag({ name });
+      setTags((prev) => {
+        const next = [...prev.filter((t) => t.id !== tag.id), tag];
+        return next.sort((a, b) => a.name.localeCompare(b.name));
+      });
+      setTagIds((prev) => (prev.includes(tag.id) ? prev : [...prev, tag.id]));
+      setSuggestedTags((prev) => prev.filter((t) => t.toLowerCase() !== name.toLowerCase()));
+      markDirty();
+      if (!customTagName) {
+        setNewTagName("");
+        setCreatingTag(false);
+      }
+    } catch (err: unknown) {
+      setTagError(err instanceof Error ? err.message : "Failed to create tag");
+    } finally {
+      setTagSaving(false);
+    }
+  };
+
   if (loading) return <Spinner label="Loading post…" />;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Link href="/admin/blog" className="text-zinc-500 hover:text-zinc-800" aria-label="Back to posts">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <h1 className="font-heading text-xl font-black text-zinc-900">
-          {isNew && !post ? "New post" : "Edit post"}
-        </h1>
-        {post && <Badge tone={post.status === "PUBLISHED" ? "forest" : "slate"}>{post.status.toLowerCase()}</Badge>}
+    <div className="space-y-6">
+      {/* Top bar: title + status + actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-4">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/blog" className="text-zinc-500 hover:text-zinc-800" aria-label="Back to posts">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-xl font-black text-zinc-900">
+                {isNew ? "New post" : post?.title || "Untitled"}
+              </h1>
+              {post && <Badge tone={STATUS_TONE[post.status]}>{post.status.toLowerCase()}</Badge>}
+            </div>
+            {saveState !== "idle" && (
+              <p
+                className={`text-xs ${
+                  saveState === "error"
+                    ? "text-red-600"
+                    : saveState === "dirty"
+                    ? "text-amber-600"
+                    : "text-zinc-500"
+                }`}
+              >
+                {SAVE_LABEL[saveState]}
+              </p>
+            )}
+          </div>
+        </div>
 
-        <span
-          className={`text-xs font-semibold ${
-            saveState === "error" ? "text-red-600" : "text-zinc-400"
-          }`}
-          role="status"
-        >
-          {SAVE_LABEL[saveState]}
-        </span>
-
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-zinc-200 p-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Responsive preview mode toggle */}
+          <div className="flex rounded-lg bg-zinc-100 p-0.5 text-xs font-semibold">
             <button
               type="button"
               onClick={() => setPreview("off")}
-              aria-pressed={preview === "off"}
-              className={`rounded-md px-2 py-1 text-xs font-semibold ${preview === "off" ? "bg-zinc-100 text-zinc-800" : "text-zinc-500"}`}
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1 ${
+                preview === "off" ? "bg-white text-zinc-900 shadow-2xs" : "text-zinc-500 hover:text-zinc-800"
+              }`}
             >
-              Edit
+              <Eye className="h-3.5 w-3.5" />
+              <span>Edit</span>
             </button>
             <button
               type="button"
               onClick={() => setPreview("desktop")}
-              aria-label="Desktop preview"
-              aria-pressed={preview === "desktop"}
-              className={`rounded-md px-2 py-1 ${preview === "desktop" ? "bg-zinc-100 text-zinc-800" : "text-zinc-500"}`}
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1 ${
+                preview === "desktop"
+                  ? "bg-white text-zinc-900 shadow-2xs"
+                  : "text-zinc-500 hover:text-zinc-800"
+              }`}
             >
-              <Monitor className="h-4 w-4" />
+              <Monitor className="h-3.5 w-3.5" />
+              <span>Desktop</span>
             </button>
             <button
               type="button"
               onClick={() => setPreview("mobile")}
-              aria-label="Mobile preview"
-              aria-pressed={preview === "mobile"}
-              className={`rounded-md px-2 py-1 ${preview === "mobile" ? "bg-zinc-100 text-zinc-800" : "text-zinc-500"}`}
+              className={`flex items-center gap-1 rounded-md px-2.5 py-1 ${
+                preview === "mobile"
+                  ? "bg-white text-zinc-900 shadow-2xs"
+                  : "text-zinc-500 hover:text-zinc-800"
+              }`}
             >
-              <Smartphone className="h-4 w-4" />
+              <Smartphone className="h-3.5 w-3.5" />
+              <span>Mobile</span>
             </button>
           </div>
-          {post?.status === "PUBLISHED" && (
-            <>
-              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" icon={Eye}>
-                  View
-                </Button>
-              </a>
-              <Button variant="secondary" icon={Undo2} onClick={unpublish}>
-                Unpublish
-              </Button>
-            </>
-          )}
-          <Button variant="secondary" icon={Save} loading={saveState === "saving"} onClick={() => void save()}>
-            Save draft
+
+          <Button
+            variant="secondary"
+            icon={Sparkles}
+            className="text-forest-moss-800 hover:bg-forest-moss-50 border-forest-moss-200"
+            onClick={handleAutoGenerateSeo}
+            title="Auto-capture SEO meta title, description, and recommended tags"
+          >
+            Auto SEO
           </Button>
-          {post?.status !== "PUBLISHED" && (
+
+          <Button
+            variant="secondary"
+            icon={Save}
+            loading={saveState === "saving"}
+            onClick={() => void save()}
+          >
+            Save
+          </Button>
+
+          {post?.status === "PUBLISHED" ? (
+            <Button variant="secondary" icon={Undo2} onClick={() => void unpublish()}>
+              Unpublish
+            </Button>
+          ) : (
             <Button icon={Send} onClick={() => void publish()}>
               Publish
             </Button>
@@ -302,68 +455,130 @@ export default function BlogEditorPage() {
         </div>
       </div>
 
-      {error && <ErrorState message={error} />}
+      {autoSeoNotification && (
+        <div className="flex items-center justify-between rounded-xl border border-forest-moss-300 bg-forest-moss-50 p-3 text-xs font-semibold text-forest-moss-900 shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-forest-moss-600" />
+            <span>{autoSeoNotification}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAutoSeoNotification(null)}
+            className="rounded p-1 text-forest-moss-600 hover:bg-forest-moss-100"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-4">
-          <input
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              markDirty();
-            }}
-            onBlur={() => saveState === "dirty" && void save()}
-            placeholder="Post title"
-            aria-label="Post title"
-            className="w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-heading text-2xl font-black text-zinc-900 outline-none focus:border-forest-moss-500"
-          />
+      {error && <ErrorState message={error} onRetry={() => setError(null)} />}
 
+      {/* Auto SEO Kickstart Bar on New Post */}
+      {isNew && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-forest-moss-200 bg-gradient-to-r from-forest-moss-50/80 via-emerald-50/50 to-white p-4 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-forest-moss-600 text-white shadow-2xs">
+              <Wand2 className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-xs font-bold text-forest-moss-900">Auto SEO & Content Capture</p>
+              <p className="text-xs text-forest-moss-700">
+                Type your topic headline or start writing, then click to auto-capture SEO title, description, excerpt, and recommended tags.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            icon={Sparkles}
+            className="bg-white border-forest-moss-300 text-forest-moss-800 hover:bg-forest-moss-100/60"
+            onClick={handleAutoGenerateSeo}
+          >
+            Auto-generate SEO & Tags
+          </Button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main writing area (2 cols) */}
+        <div className="space-y-6 lg:col-span-2">
           {preview === "off" ? (
-            <BlogEditor
-              value={doc}
-              onChange={(next) => {
-                setDoc(next);
-                markDirty();
-              }}
-              onError={setError}
-            />
+            <>
+              {/* Post Title */}
+              <div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    markDirty();
+                  }}
+                  placeholder="Post title or headline…"
+                  aria-label="Post title"
+                  className="w-full font-heading text-3xl font-black text-zinc-900 outline-none placeholder:text-zinc-300"
+                />
+              </div>
+
+              {/* Rich Text Editor */}
+              <div className="rounded-2xl border border-zinc-200 bg-white shadow-2xs">
+                <BlogEditor
+                  value={doc}
+                  onChange={(next) => {
+                    setDoc(next);
+                    markDirty();
+                  }}
+                  onError={(msg) => setError(msg)}
+                />
+              </div>
+            </>
           ) : (
-            // Preview uses the same PostContent component the public site
-            // renders with, so this is genuinely what will ship.
-            <div className="rounded-2xl border border-zinc-200 bg-white p-6">
+            <div className="flex justify-center rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6">
               <div
-                className={`mx-auto ${preview === "mobile" ? "max-w-[22rem] border-x border-dashed border-zinc-200 px-4" : ""}`}
+                className={`w-full bg-white shadow-lg transition-all ${
+                  preview === "mobile"
+                    ? "max-w-sm rounded-[2.5rem] border-8 border-zinc-900 p-6"
+                    : "max-w-3xl rounded-2xl p-10"
+                }`}
               >
-                <h1 className="font-heading text-3xl font-black text-zinc-900">{title}</h1>
-                <PostContent doc={doc} />
+                <h1 className="font-heading text-3xl font-black text-zinc-900">{title || "Untitled"}</h1>
+                {excerpt && <p className="mt-3 text-base text-zinc-500 italic">{excerpt}</p>}
+                <div className="mt-6 border-t border-zinc-100 pt-6">
+                  <PostContent doc={doc} />
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        <aside className="space-y-4">
+        {/* Sidebar metadata (1 col) */}
+        <aside className="space-y-6">
           <Panel title="Publishing">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600" htmlFor="scheduled-for">
-              Schedule for
-            </label>
-            <input
-              id="scheduled-for"
-              type="datetime-local"
-              value={scheduledFor}
-              onChange={(e) => {
-                setScheduledFor(e.target.value);
-                markDirty();
-              }}
-              onBlur={() => saveState === "dirty" && void save()}
-              className="w-full rounded-lg border border-zinc-200 px-2.5 py-1.5 text-sm outline-none focus:border-forest-moss-500"
-            />
-            <p className="mt-1 text-[11px] text-zinc-500">
-              Set a future time, then press Schedule. A cron job publishes it within a minute.
-            </p>
-            {scheduledFor && post?.status !== "PUBLISHED" && (
+            <div className="space-y-3 text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700">Schedule release</label>
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    type="datetime-local"
+                    value={scheduledFor}
+                    onChange={(e) => {
+                      setScheduledFor(e.target.value);
+                      markDirty();
+                    }}
+                    className="w-full rounded-lg border border-zinc-200 px-3 py-1.5 text-xs outline-none focus:border-forest-moss-500"
+                  />
+                </div>
+              </div>
+
+              {post?.publishedAt && (
+                <p className="text-xs text-zinc-500">
+                  Published on {new Date(post.publishedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+
+            {scheduledFor && (
               <Button
                 variant="secondary"
-                className="mt-2 w-full"
+                className="mt-3 w-full"
                 icon={CalendarClock}
                 onClick={() => void schedule()}
               >
@@ -383,45 +598,106 @@ export default function BlogEditorPage() {
           </Panel>
 
           <Panel title="Cover image">
-            {coverImage ? (
-              <div className="space-y-2">
-                <Image
-                  src={mediaUrl(coverImage.path)}
-                  alt={coverImage.originalName}
-                  width={coverImage.width ?? 400}
-                  height={coverImage.height ?? 300}
-                  className="w-full rounded-lg border border-zinc-200 object-cover"
-                />
-                <div className="flex gap-2">
-                  <Button variant="secondary" className="flex-1" onClick={() => setMediaOpen(true)}>
-                    Replace
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setCoverImage(null);
-                      markDirty();
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button variant="secondary" icon={ImageIcon} className="w-full" onClick={() => setMediaOpen(true)}>
-                Choose cover image
-              </Button>
-            )}
+            <CoverImageUploader
+              value={coverImage}
+              onChange={(media) => {
+                setCoverImage(media);
+                markDirty();
+              }}
+              onOpenMediaLibrary={() => setMediaOpen(true)}
+            />
           </Panel>
 
-          <Panel title="Categories">
-            {categories.length === 0 && (
-              <p className="text-xs text-zinc-500">No categories defined yet.</p>
+          {/* Categories Panel with Create Ability */}
+          <Panel
+            title="Categories"
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingCat((prev) => !prev);
+                  setCatError(null);
+                }}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-forest-moss-700 hover:text-forest-moss-800 transition-colors"
+              >
+                {creatingCat ? (
+                  <>
+                    <X className="h-3.5 w-3.5" />
+                    <span>Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add new</span>
+                  </>
+                )}
+              </button>
+            }
+          >
+            {creatingCat && (
+              <form onSubmit={handleAddCategory} className="mb-3 space-y-2 rounded-lg border border-forest-moss-200 bg-forest-moss-50/50 p-2.5">
+                <p className="text-xs font-bold text-forest-moss-900">New Category</p>
+                <input
+                  type="text"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Category name (e.g. Maize Farming)"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs outline-none focus:border-forest-moss-500"
+                  autoFocus
+                  required
+                />
+                <input
+                  type="text"
+                  value={newCatDesc}
+                  onChange={(e) => setNewCatDesc(e.target.value)}
+                  placeholder="Optional description"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs outline-none focus:border-forest-moss-500"
+                />
+                {catError && <p className="text-[11px] text-red-600">{catError}</p>}
+                <div className="flex justify-end gap-1.5 pt-1">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="py-1 px-2 text-xs"
+                    onClick={() => {
+                      setCreatingCat(false);
+                      setNewCatName("");
+                      setNewCatDesc("");
+                      setCatError(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="py-1 px-2.5 text-xs"
+                    loading={catSaving}
+                    disabled={!newCatName.trim() || catSaving}
+                  >
+                    Create & Select
+                  </Button>
+                </div>
+              </form>
             )}
-            <ul className="space-y-1">
+
+            {categories.length === 0 && !creatingCat && (
+              <div className="text-center py-2">
+                <p className="text-xs text-zinc-500">No categories defined yet.</p>
+                <button
+                  type="button"
+                  onClick={() => setCreatingCat(true)}
+                  className="mt-1 text-xs font-semibold text-forest-moss-700 hover:underline"
+                >
+                  + Create first category
+                </button>
+              </div>
+            )}
+
+            <ul className="space-y-1 max-h-48 overflow-y-auto pr-1">
               {categories.map((c) => (
                 <li key={c.id}>
-                  <label className="flex items-center gap-2 text-sm text-zinc-700">
+                  <label className="flex items-center gap-2 text-sm text-zinc-700 hover:text-zinc-900 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={categoryIds.includes(c.id)}
@@ -431,16 +707,94 @@ export default function BlogEditorPage() {
                         );
                         markDirty();
                       }}
+                      className="rounded border-zinc-300 text-forest-moss-600 focus:ring-forest-moss-500"
                     />
-                    {c.name}
+                    <span className="truncate" title={c.description ?? undefined}>
+                      {c.name}
+                    </span>
                   </label>
                 </li>
               ))}
             </ul>
           </Panel>
 
-          <Panel title="Tags">
-            {tags.length === 0 && <p className="text-xs text-zinc-500">No tags defined yet.</p>}
+          {/* Tags Panel with Create and Auto-Suggestion Ability */}
+          <Panel
+            title="Tags"
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatingTag((prev) => !prev);
+                  setTagError(null);
+                }}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-forest-moss-700 hover:text-forest-moss-800 transition-colors"
+              >
+                {creatingTag ? (
+                  <>
+                    <X className="h-3.5 w-3.5" />
+                    <span>Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add tag</span>
+                  </>
+                )}
+              </button>
+            }
+          >
+            {creatingTag && (
+              <form onSubmit={handleAddTag} className="mb-2.5 flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="New tag name (e.g. Storage)"
+                  className="flex-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs outline-none focus:border-forest-moss-500"
+                  autoFocus
+                  required
+                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="py-1 px-2.5 text-xs shrink-0"
+                  loading={tagSaving}
+                  disabled={!newTagName.trim() || tagSaving}
+                >
+                  Add
+                </Button>
+              </form>
+            )}
+            {tagError && <p className="mb-2 text-[11px] text-red-600">{tagError}</p>}
+
+            {/* Recommended / Suggested Tags from Auto SEO */}
+            {suggestedTags.length > 0 && (
+              <div className="mb-3 rounded-lg border border-forest-moss-200 bg-forest-moss-50/60 p-2">
+                <p className="text-[11px] font-bold text-forest-moss-900 mb-1.5 flex items-center gap-1">
+                  <Sparkles className="h-3 w-3 text-forest-moss-600" />
+                  Suggested from content:
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {suggestedTags.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => handleAddTag(undefined, name)}
+                      className="inline-flex items-center gap-0.5 rounded-full border border-forest-moss-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-forest-moss-800 hover:bg-forest-moss-100 transition-colors cursor-pointer"
+                      title={`Click to add and select tag "${name}"`}
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      <span>{name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tags.length === 0 && !creatingTag && (
+              <p className="text-xs text-zinc-500">No tags defined yet.</p>
+            )}
             <div className="flex flex-wrap gap-1.5">
               {tags.map((t) => {
                 const on = tagIds.includes(t.id);
@@ -452,9 +806,9 @@ export default function BlogEditorPage() {
                       setTagIds((prev) => (on ? prev.filter((id) => id !== t.id) : [...prev, t.id]));
                       markDirty();
                     }}
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                       on
-                        ? "bg-forest-moss-600 text-white"
+                        ? "bg-forest-moss-600 text-white shadow-2xs"
                         : "border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
                     }`}
                   >
@@ -465,7 +819,20 @@ export default function BlogEditorPage() {
             </div>
           </Panel>
 
-          <Panel title="Excerpt">
+          <Panel
+            title="Excerpt"
+            action={
+              <button
+                type="button"
+                onClick={handleAutoGenerateSeo}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-forest-moss-700 hover:text-forest-moss-800 transition-colors"
+                title="Auto-derive excerpt from content"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Auto</span>
+              </button>
+            }
+          >
             <textarea
               value={excerpt}
               onChange={(e) => {
@@ -474,12 +841,25 @@ export default function BlogEditorPage() {
               }}
               onBlur={() => saveState === "dirty" && void save()}
               rows={4}
-              placeholder="Leave blank to generate from the article."
+              placeholder="Leave blank to generate from the article, or click Auto."
               className="w-full rounded-lg border border-zinc-200 p-2.5 text-sm outline-none focus:border-forest-moss-500"
             />
           </Panel>
 
-          <Panel title="SEO">
+          <Panel
+            title="SEO & Metadata"
+            action={
+              <button
+                type="button"
+                onClick={handleAutoGenerateSeo}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-forest-moss-700 hover:text-forest-moss-800 transition-colors"
+                title="Auto-capture SEO Meta Title and Description"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Auto-fill SEO</span>
+              </button>
+            }
+          >
             <label className="mb-1 block text-xs font-semibold text-zinc-600" htmlFor="meta-title">
               Meta title
             </label>
