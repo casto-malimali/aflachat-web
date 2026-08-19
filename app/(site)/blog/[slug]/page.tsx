@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Sparkles, User } from "lucide-react";
 import { PostContent, extractHeadings } from "@/components/blog/PostContent";
 import { PostCard } from "@/components/blog/PostCard";
 import { TableOfContents } from "@/components/blog/TableOfContents";
@@ -104,6 +104,10 @@ export default async function BlogPostPage({
   const headings = extractHeadings(post.contentJson);
   const url = `${SITE_URL}/blog/${post.slug}`;
 
+  const heroImageSrc = post.coverImage
+    ? mediaUrl(post.coverImage.path)
+    : "/images/2149142834.jpg";
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -131,74 +135,104 @@ export default async function BlogPostPage({
       />
       <ViewCounter slug={post.slug} />
 
-      <header className="mx-auto max-w-3xl px-6 pt-10">
-        <Link
-          href="/blog"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-zinc-500 hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> All articles
-        </Link>
+      {/* Hero Section */}
+      <header className="relative min-h-[460px] md:min-h-[520px] lg:min-h-[580px] w-full overflow-hidden bg-zinc-950 flex items-end pb-12 pt-28">
+        {/* Background Image */}
+        <Image
+          src={heroImageSrc}
+          alt={post.coverImage?.originalName || post.title}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+          {...(post.coverImage?.lqip
+            ? { placeholder: "blur" as const, blurDataURL: post.coverImage.lqip }
+            : {})}
+        />
 
-        {post.categories.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-1.5">
-            {post.categories.map((c) => (
-              <Link
-                key={c.id}
-                href={`/blog/category/${c.slug}`}
-                className="rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-secondary"
-              >
-                {c.name}
-              </Link>
-            ))}
+        {/* Gradient Scrim */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-900/40" />
+
+        {/* Hero Content */}
+        <div className="relative z-10 mx-auto max-w-5xl px-6 w-full animate-fade-up">
+          {/* Breadcrumb / Back Link & Badge */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-zinc-200 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> All articles
+            </Link>
+
+            {post.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/blog/category/${c.slug}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-opacity hover:opacity-90"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span>{c.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        )}
 
-        <h1 className="mt-4 font-heading text-4xl font-black leading-tight tracking-tight text-zinc-900 md:text-5xl">
-          {post.title}
-        </h1>
+          {/* Title */}
+          <h1 className="font-heading text-3xl font-black leading-[1.18] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
+            {post.title}
+          </h1>
 
-        <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-zinc-500">
-          {post.author && <span className="font-semibold text-zinc-700">{post.author.name}</span>}
-          {post.publishedAt && (
-            <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+          {/* Excerpt Subtitle */}
+          {post.excerpt && (
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-zinc-300 sm:text-lg md:text-xl">
+              {post.excerpt}
+            </p>
           )}
-          {post.readingTimeMinutes > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {post.readingTimeMinutes} min read
-            </span>
-          )}
+
+          {/* Author & Published Metadata */}
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs sm:text-sm text-zinc-400 border-t border-white/10 pt-4">
+            {post.author && (
+              <div className="flex items-center gap-2 font-medium text-zinc-200">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white">
+                  <User className="h-3.5 w-3.5" />
+                </span>
+                <span>{post.author.name}</span>
+              </div>
+            )}
+
+            {post.publishedAt && (
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4 text-zinc-400" />
+                <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+              </div>
+            )}
+
+            {post.readingTimeMinutes > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-zinc-400" />
+                <span>{post.readingTimeMinutes} min read</span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {post.coverImage && (
-        <div className="mx-auto mt-8 max-w-4xl px-6">
-          <Image
-            src={mediaUrl(post.coverImage.path)}
-            alt={post.coverImage.originalName}
-            width={post.coverImage.width ?? 1200}
-            height={post.coverImage.height ?? 700}
-            sizes="(max-width: 1024px) 100vw, 1024px"
-            priority
-            {...(post.coverImage.lqip
-              ? { placeholder: "blur" as const, blurDataURL: post.coverImage.lqip }
-              : {})}
-            className="h-auto w-full rounded-2xl"
-          />
-        </div>
-      )}
-
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[1fr_16rem]">
+      {/* Article Body & Table of Contents */}
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 lg:grid-cols-[1fr_16rem]">
         <div className="mx-auto w-full max-w-3xl">
           <PostContent doc={post.contentJson} />
 
+          {/* Tags */}
           {post.tags.length > 0 && (
             <div className="mt-10 flex flex-wrap gap-2 border-t border-zinc-200 pt-6">
               {post.tags.map((t) => (
                 <Link
                   key={t.id}
                   href={`/blog/tag/${t.slug}`}
-                  className="rounded-full border border-zinc-200 px-3 py-1 text-sm text-zinc-600 hover:bg-zinc-100"
+                  className="rounded-full border border-zinc-200 bg-zinc-50/70 px-3.5 py-1 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-primary"
                 >
                   #{t.name}
                 </Link>
@@ -206,6 +240,7 @@ export default async function BlogPostPage({
             </div>
           )}
 
+          {/* Share Buttons */}
           <div className="mt-8 border-t border-zinc-200 pt-6">
             <ShareButtons url={url} title={post.title} />
           </div>
@@ -217,10 +252,19 @@ export default async function BlogPostPage({
         </aside>
       </div>
 
+      {/* Related Articles */}
       {related.length > 0 && (
-        <section className="border-t border-zinc-200 bg-zinc-50 py-12">
+        <section className="border-t border-zinc-200 bg-zinc-50 py-14">
           <div className="mx-auto max-w-5xl px-6">
-            <h2 className="mb-6 font-heading text-2xl font-black text-zinc-900">Related articles</h2>
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-secondary">Keep reading</p>
+                <h2 className="font-heading text-2xl font-black text-zinc-900 sm:text-3xl">Related articles</h2>
+              </div>
+              <Link href="/blog" className="text-sm font-semibold text-primary hover:underline">
+                View all →
+              </Link>
+            </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => (
                 <PostCard key={r.id} post={r} />
