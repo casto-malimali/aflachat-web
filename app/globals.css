@@ -2,7 +2,7 @@
 
 /* ─────────────────────────────────────────────────────────────────────────
    Design tokens (Tailwind v4 — configured here, not in tailwind.config.js).
-   See docs/redesign/02-DESIGN-SYSTEM.md for the full spec, usage & contrast.
+   See Docs/Web-Redesign/02-DESIGN-SYSTEM.md (project root) for the full spec, usage & contrast.
    ──────────────────────────────────────────────────────────────────────── */
 @theme {
   /* Brand */
@@ -96,7 +96,7 @@
   --foreground: #13251E;
 
   /* Font stacks consumed by inline styles / next/font/local once .woff2 files
-     are added to app/fonts (see docs/redesign/04-IMPLEMENTATION.md §3). Until
+     are added to app/fonts (see Docs/Web-Redesign/04-IMPLEMENTATION.md (project root) §3). Until
      then these degrade gracefully to locally-installed / system fonts — no
      build-time network font download. */
   --font-poppins: "Poppins", "Segoe UI", system-ui, sans-serif;
