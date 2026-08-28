@@ -51,11 +51,11 @@ export default function Services() {
           <h2 className="font-heading text-2xl font-bold md:text-3xl">{t.services.chat}</h2>
           <p className="max-w-xl text-sm text-emerald-100">{t.services.chatDesc}</p>
           <Button
-            variant="secondary"
+            variant="white"
             size="lg"
             onClick={() => window.dispatchEvent(new Event("aflachat:open"))}
           >
-            <MessageCircle className="h-5 w-5" aria-hidden />
+            <MessageCircle className="h-5 w-5 text-forest-moss-700" aria-hidden />
             {askLabel}
           </Button>
         </div>

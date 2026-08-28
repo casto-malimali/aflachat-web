@@ -53,6 +53,7 @@ export interface Post {
   contentHtml: string;
   plainText: string;
   readingTimeMinutes: number;
+  isFeatured?: boolean;
   coverImageId: string | null;
   status: PostStatus;
   publishedAt: string | null;
@@ -93,6 +94,7 @@ export interface PostInput {
   excerpt?: string | null;
   slug?: string;
   status?: PostStatus;
+  isFeatured?: boolean;
   scheduledFor?: string | null;
   coverImageId?: string | null;
   categoryIds?: string[];
@@ -105,7 +107,7 @@ export interface PostInput {
 
 const ADMIN = "/api/admin/blog";
 
-function qs(params: Record<string, string | number | undefined>): string {
+function qs(params: Record<string, string | number | boolean | undefined>): string {
   const search = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") search.set(k, String(v));
@@ -119,6 +121,7 @@ export const blogApi = {
     page?: number;
     limit?: number;
     status?: PostStatus;
+    featured?: boolean;
     search?: string;
     authorId?: string;
   }) => apiRequest<Paginated<Post> & { posts: Post[] }>(`${ADMIN}/posts${qs(params)}`),

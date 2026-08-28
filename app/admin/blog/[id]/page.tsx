@@ -69,6 +69,7 @@ export default function BlogEditorPage() {
   const [excerpt, setExcerpt] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
+  const [isFeatured, setIsFeatured] = useState(false);
 
   const [coverImage, setCoverImage] = useState<Media | null>(null);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
@@ -98,9 +99,9 @@ export default function BlogEditorPage() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   // Held in a ref so the autosave timer always sees the latest values without
   // being torn down and recreated on every keystroke.
-  const latest = useRef({ title, doc, excerpt, metaTitle, metaDescription, coverImage, categoryIds, tagIds, scheduledFor });
+  const latest = useRef({ title, doc, excerpt, metaTitle, metaDescription, isFeatured, coverImage, categoryIds, tagIds, scheduledFor });
   useEffect(() => {
-    latest.current = { title, doc, excerpt, metaTitle, metaDescription, coverImage, categoryIds, tagIds, scheduledFor };
+    latest.current = { title, doc, excerpt, metaTitle, metaDescription, isFeatured, coverImage, categoryIds, tagIds, scheduledFor };
   });
 
   // Taxonomy is small and rarely changes — fetch once for the whole screen.
@@ -128,6 +129,7 @@ export default function BlogEditorPage() {
         setExcerpt(p.excerpt ?? "");
         setMetaTitle(p.metaTitle ?? "");
         setMetaDescription(p.metaDescription ?? "");
+        setIsFeatured(p.isFeatured ?? false);
         setCoverImage(p.coverImage);
         setCategoryIds(p.categories.map((c) => c.id));
         setTagIds(p.tags.map((t) => t.id));
@@ -152,6 +154,7 @@ export default function BlogEditorPage() {
       excerpt: e,
       metaTitle: mt,
       metaDescription: md,
+      isFeatured: isFeat,
       coverImage: cover,
       categoryIds: cats,
       tagIds: tgs,
@@ -170,6 +173,7 @@ export default function BlogEditorPage() {
       excerpt: e || null,
       metaTitle: mt || null,
       metaDescription: md || null,
+      isFeatured: isFeat,
       coverImageId: cover?.id ?? null,
       categoryIds: cats,
       tagIds: tgs,
@@ -573,6 +577,30 @@ export default function BlogEditorPage() {
                   Published on {new Date(post.publishedAt).toLocaleDateString()}
                 </p>
               )}
+
+              {/* Featured article toggle */}
+              <div className="pt-3 border-t border-zinc-100">
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => {
+                      setIsFeatured(e.target.checked);
+                      markDirty();
+                    }}
+                    className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-forest-moss-600 focus:ring-forest-moss-500"
+                  />
+                  <div>
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-900">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                      Featured article
+                    </span>
+                    <p className="text-[11px] text-zinc-500 leading-tight mt-0.5">
+                      Highlight this article as the featured story with a large hero banner at the top of the blog.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {scheduledFor && (

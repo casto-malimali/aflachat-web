@@ -54,6 +54,7 @@ export interface PublicPost {
   excerpt: string | null;
   contentJson: BlogDoc;
   readingTimeMinutes: number;
+  isFeatured?: boolean;
   status: string;
   publishedAt: string | null;
   updatedAt: string;
@@ -105,6 +106,7 @@ export interface ListParams {
   category?: string;
   tag?: string;
   search?: string;
+  featured?: boolean;
   sort?: "newest" | "oldest" | "popular";
 }
 

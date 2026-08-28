@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { useAdminData } from "@/components/admin/useAdmin";
@@ -207,12 +208,20 @@ export default function BlogPostsPage() {
                         {index + 1}
                       </td>
                       <td className="py-3 pr-4">
-                        <Link
-                          href={`/admin/blog/${post.id}`}
-                          className="font-semibold text-zinc-900 hover:text-forest-moss-700 transition-colors"
-                        >
-                          {post.title}
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/admin/blog/${post.id}`}
+                            className="font-semibold text-zinc-900 hover:text-forest-moss-700 transition-colors"
+                          >
+                            {post.title}
+                          </Link>
+                          {post.isFeatured && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                              <Sparkles className="h-2.5 w-2.5 text-amber-500" />
+                              Featured
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-zinc-400">/{post.slug}</p>
                       </td>
                       <td className="py-3 pr-4">

@@ -2,7 +2,7 @@ import { cn } from "@/lib/cn";
 import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "white";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
@@ -10,6 +10,7 @@ const variants: Record<Variant, string> = {
   secondary: "bg-secondary text-secondary-foreground hover:brightness-95",
   outline: "border border-border-strong text-foreground hover:bg-surface-2",
   ghost: "text-foreground hover:bg-surface-2",
+  white: "bg-white text-forest-moss-950 font-bold hover:bg-zinc-100 shadow-md shadow-black/10 hover:shadow-lg",
 };
 
 const sizes: Record<Size, string> = {
